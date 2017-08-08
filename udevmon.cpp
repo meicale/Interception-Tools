@@ -328,9 +328,8 @@ int main(int argc, char *argv[]) try {
     udev_list_entry *devices = udev_enumerate_get_list_entry(enumerate);
     udev_list_entry *dev_list_entry;
     udev_list_entry_foreach(dev_list_entry, devices) {
-        udev_device *device = udev_device_new_from_syspath(
-            udev, udev_list_entry_get_name(dev_list_entry));
-        if (device) {
+        if (udev_device *device = udev_device_new_from_syspath(
+                udev, udev_list_entry_get_name(dev_list_entry))) {
             launch_jobs_for_devnode(
                 get_devnode(device, /*initial_scan =*/true));
             udev_device_unref(device);
@@ -352,8 +351,7 @@ int main(int argc, char *argv[]) try {
 
         if (select(fd + 1, &fds, nullptr, nullptr, nullptr) > 0 &&
             FD_ISSET(fd, &fds)) {
-            udev_device *device = udev_monitor_receive_device(monitor);
-            if (device) {
+            if (udev_device *device = udev_monitor_receive_device(monitor)) {
                 launch_jobs_for_devnode(get_devnode(device));
                 udev_device_unref(device);
             }
