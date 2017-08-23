@@ -49,6 +49,7 @@ options:
 
 - [CMake][cmake]
 - [libevdev][]
+- [yaml-cpp][]
 
 ## Official Plugins
 
@@ -233,6 +234,7 @@ Where:
 [uinput]: https://www.kernel.org/doc/html/latest/input/uinput.html
 [libudev]: https://www.freedesktop.org/software/systemd/man/libudev.html
 [libevdev]: https://www.freedesktop.org/software/libevdev/doc/latest/index.html
+[yaml-cpp]: https://github.com/jbeder/yaml-cpp
 [caps2esc]: https://gitlab.com/interception/linux/plugins/caps2esc
 [ecmascript]: http://en.cppreference.com/w/cpp/regex/ecmascript
 [input-event-codes]: https://github.com/torvalds/linux/blob/master/include/uapi/linux/input-event-codes.h
