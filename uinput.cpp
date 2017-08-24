@@ -15,51 +15,141 @@ extern "C" {
 
 namespace {
 std::map<int, std::string> bus_string = {
+#ifdef BUS_PCI
     {BUS_PCI, "BUS_PCI"},
+#endif
+#ifdef BUS_ISAPNP
     {BUS_ISAPNP, "BUS_ISAPNP"},
+#endif
+#ifdef BUS_USB
     {BUS_USB, "BUS_USB"},
+#endif
+#ifdef BUS_HIL
     {BUS_HIL, "BUS_HIL"},
+#endif
+#ifdef BUS_BLUETOOTH
     {BUS_BLUETOOTH, "BUS_BLUETOOTH"},
+#endif
+#ifdef BUS_VIRTUAL
     {BUS_VIRTUAL, "BUS_VIRTUAL"},
+#endif
+#ifdef BUS_ISA
     {BUS_ISA, "BUS_ISA"},
+#endif
+#ifdef BUS_I8042
     {BUS_I8042, "BUS_I8042"},
+#endif
+#ifdef BUS_XTKBD
     {BUS_XTKBD, "BUS_XTKBD"},
+#endif
+#ifdef BUS_RS232
     {BUS_RS232, "BUS_RS232"},
+#endif
+#ifdef BUS_GAMEPORT
     {BUS_GAMEPORT, "BUS_GAMEPORT"},
+#endif
+#ifdef BUS_PARPORT
     {BUS_PARPORT, "BUS_PARPORT"},
+#endif
+#ifdef BUS_AMIGA
     {BUS_AMIGA, "BUS_AMIGA"},
+#endif
+#ifdef BUS_ADB
     {BUS_ADB, "BUS_ADB"},
+#endif
+#ifdef BUS_I2C
     {BUS_I2C, "BUS_I2C"},
+#endif
+#ifdef BUS_HOST
     {BUS_HOST, "BUS_HOST"},
+#endif
+#ifdef BUS_GSC
     {BUS_GSC, "BUS_GSC"},
+#endif
+#ifdef BUS_ATARI
     {BUS_ATARI, "BUS_ATARI"},
+#endif
+#ifdef BUS_SPI
     {BUS_SPI, "BUS_SPI"},
+#endif
+#ifdef BUS_RMI
     {BUS_RMI, "BUS_RMI"},
+#endif
+#ifdef BUS_CEC
     {BUS_CEC, "BUS_CEC"},
+#endif
+#ifdef BUS_INTEL_ISHTP
+    {BUS_INTEL_ISHTP, "BUS_INTEL_ISHTP"},
+#endif
 };
 
 std::map<std::string, int> string_bus = {
+#ifdef BUS_PCI
     {"BUS_PCI", BUS_PCI},
+#endif
+#ifdef BUS_ISAPNP
     {"BUS_ISAPNP", BUS_ISAPNP},
+#endif
+#ifdef BUS_USB
     {"BUS_USB", BUS_USB},
+#endif
+#ifdef BUS_HIL
     {"BUS_HIL", BUS_HIL},
+#endif
+#ifdef BUS_BLUETOOTH
     {"BUS_BLUETOOTH", BUS_BLUETOOTH},
+#endif
+#ifdef BUS_VIRTUAL
     {"BUS_VIRTUAL", BUS_VIRTUAL},
+#endif
+#ifdef BUS_ISA
     {"BUS_ISA", BUS_ISA},
+#endif
+#ifdef BUS_I8042
     {"BUS_I8042", BUS_I8042},
+#endif
+#ifdef BUS_XTKBD
     {"BUS_XTKBD", BUS_XTKBD},
+#endif
+#ifdef BUS_RS232
     {"BUS_RS232", BUS_RS232},
+#endif
+#ifdef BUS_GAMEPORT
     {"BUS_GAMEPORT", BUS_GAMEPORT},
+#endif
+#ifdef BUS_PARPORT
     {"BUS_PARPORT", BUS_PARPORT},
+#endif
+#ifdef BUS_AMIGA
     {"BUS_AMIGA", BUS_AMIGA},
+#endif
+#ifdef BUS_ADB
     {"BUS_ADB", BUS_ADB},
+#endif
+#ifdef BUS_I2C
     {"BUS_I2C", BUS_I2C},
+#endif
+#ifdef BUS_HOST
     {"BUS_HOST", BUS_HOST},
+#endif
+#ifdef BUS_GSC
     {"BUS_GSC", BUS_GSC},
+#endif
+#ifdef BUS_ATARI
     {"BUS_ATARI", BUS_ATARI},
+#endif
+#ifdef BUS_SPI
     {"BUS_SPI", BUS_SPI},
+#endif
+#ifdef BUS_RMI
     {"BUS_RMI", BUS_RMI},
+#endif
+#ifdef BUS_CEC
     {"BUS_CEC", BUS_CEC},
+#endif
+#ifdef BUS_INTEL_ISHTP
+    {"BUS_INTEL_ISHTP", BUS_INTEL_ISHTP},
+#endif
 };
 
 void print_usage(std::FILE *stream, const char *program) {
