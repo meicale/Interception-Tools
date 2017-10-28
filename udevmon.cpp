@@ -118,26 +118,26 @@ private:
 
             if (auto name = device["NAME"])
                 this->name.assign(name.as<string>(),
-                                  regex::optimize | std::regex::nosubs);
+                                  regex::optimize | regex::nosubs);
             if (auto location = device["LOCATION"])
                 this->location.assign(location.as<string>(),
-                                      regex::optimize | std::regex::nosubs);
+                                      regex::optimize | regex::nosubs);
             if (auto id = device["ID"])
                 this->id.assign(id.as<string>(),
-                                regex::optimize | std::regex::nosubs);
+                                regex::optimize | regex::nosubs);
             if (auto product = device["PRODUCT"])
                 this->product.assign(product.as<string>(),
-                                     regex::optimize | std::regex::nosubs);
+                                     regex::optimize | regex::nosubs);
             if (auto vendor = device["VENDOR"])
                 this->vendor.assign(vendor.as<string>(),
-                                    regex::optimize | std::regex::nosubs);
+                                    regex::optimize | regex::nosubs);
             if (auto bustype = device["BUSTYPE"])
                 this->bustype.assign(bustype.as<string>(),
-                                     regex::optimize | std::regex::nosubs);
+                                     regex::optimize | regex::nosubs);
             if (auto driver_version = device["DRIVER_VERSION"])
                 this->driver_version.assign(
                     driver_version.as<string>(),
-                    regex::optimize | std::regex::nosubs);
+                    regex::optimize | regex::nosubs);
             if (auto properties = device["PROPERTIES"]) {
                 for (const auto &property_node : properties) {
                     auto property_name = property_node.as<string>();
