@@ -73,6 +73,12 @@ It wraps `udevmon` in a systemd service that can be easily started, stopped
 and enabled to execute on boot. The service expects the configuration file at
 `/etc/udevmon.yaml`.
 
+I don't use Ubuntu and recommend Archlinux instead, as it provides the AUR, so I
+don't maintain PPAs. For more information on Ubuntu/Debian installation check
+this:
+
+- <https://askubuntu.com/questions/979359/how-do-i-install-caps2esc>
+
 ## Building
 
 ```
