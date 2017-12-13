@@ -54,6 +54,7 @@ options:
 ## Official Plugins
 
 - [caps2esc][]
+- [hideaway][]
 
 ## Execution
 
@@ -242,6 +243,7 @@ Where:
 [libevdev]: https://www.freedesktop.org/software/libevdev/doc/latest/index.html
 [yaml-cpp]: https://github.com/jbeder/yaml-cpp
 [caps2esc]: https://gitlab.com/interception/linux/plugins/caps2esc
+[hideaway]: https://gitlab.com/interception/linux/plugins/hideaway
 [ecmascript]: http://en.cppreference.com/w/cpp/regex/ecmascript
 [input-event-codes]: https://github.com/torvalds/linux/blob/master/include/uapi/linux/input-event-codes.h
 
