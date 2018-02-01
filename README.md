@@ -253,8 +253,8 @@ Where:
 
 _Interception Tools_ is **dual-licensed**.
 
-To be embedded and redistributed as part of a commercial solution, contact me at
-francisco@oblita.com for commercial licensing, otherwise it's under
+To be embedded and redistributed as part of a proprietary solution, contact me
+at francisco@oblita.com for commercial licensing, otherwise it's under
 
 <a href="https://gitlab.com/interception/linux/tools/blob/master/LICENSE.md">
     <img src="https://www.gnu.org/graphics/gplv3-127x51.png" alt="GPLv3">
