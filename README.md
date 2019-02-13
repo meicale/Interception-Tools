@@ -48,7 +48,6 @@ options:
 ## Dependencies
 
 - [CMake][cmake]
-- [boost][]
 - [libevdev][]
 - [yaml-cpp][]
 
@@ -239,7 +238,6 @@ Where:
 - [mxk](http://welz.org.za/projects/mxk)
 - [uinput-mapper](https://github.com/MerlijnWajer/uinput-mapper/)
 
-[boost]: http://www.boost.org/
 [cmake]: https://cmake.org
 [uinput]: https://www.kernel.org/doc/html/latest/input/uinput.html
 [libudev]: https://www.freedesktop.org/software/systemd/man/libudev.html
