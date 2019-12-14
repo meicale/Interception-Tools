@@ -81,6 +81,10 @@ this:
 
 - <https://askubuntu.com/questions/979359/how-do-i-install-caps2esc>
 
+### Fedora
+
+`dnf install cmake yaml-cpp-devel libevdev-devel`
+
 ## Building
 
 ```
