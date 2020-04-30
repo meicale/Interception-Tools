@@ -83,7 +83,7 @@ this:
 
 ### Fedora
 
-`dnf install cmake yaml-cpp-devel libevdev-devel`
+`dnf install cmake yaml-cpp-devel libevdev-devel systemd-devel`
 
 ## Building
 
