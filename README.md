@@ -49,6 +49,7 @@ options:
 
 - [CMake][cmake]
 - [libevdev][]
+- [libudev][]
 - [yaml-cpp][]
 
 ## Official Plugins
