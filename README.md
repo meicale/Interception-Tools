@@ -57,7 +57,7 @@ options:
 - [caps2esc][]
 - [space2meta][]
 - [hideaway][]
-- [dfk][]
+- [dual-function-keys][]
 
 ## Execution
 
@@ -251,7 +251,7 @@ Where:
 [yaml-cpp]: https://github.com/jbeder/yaml-cpp
 [caps2esc]: https://gitlab.com/interception/linux/plugins/caps2esc
 [space2meta]: https://gitlab.com/interception/linux/plugins/space2meta
-[dfk]: https://github.com/alex-courtis/dfk
+[dual-function-keys]: https://gitlab.com/interception/linux/plugins/dual-function-keys
 [hideaway]: https://gitlab.com/interception/linux/plugins/hideaway
 [ecmascript]: http://en.cppreference.com/w/cpp/regex/ecmascript
 [input-event-codes]: https://github.com/torvalds/linux/blob/master/include/uapi/linux/input-event-codes.h
