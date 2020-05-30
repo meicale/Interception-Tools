@@ -91,12 +91,12 @@ private:
     struct job_matcher {
         // clang-format off
         std::string job;
-        std::regex  name      {".*", std::regex::optimize};
-        std::regex  location  {".*", std::regex::optimize};
-        std::regex  id        {".*", std::regex::optimize};
-        std::regex  product   {".*", std::regex::optimize};
-        std::regex  vendor    {".*", std::regex::optimize};
-        std::regex  bustype   {".*", std::regex::optimize};
+        std::regex  name           {".*", std::regex::optimize};
+        std::regex  location       {".*", std::regex::optimize};
+        std::regex  id             {".*", std::regex::optimize};
+        std::regex  product        {".*", std::regex::optimize};
+        std::regex  vendor         {".*", std::regex::optimize};
+        std::regex  bustype        {".*", std::regex::optimize};
         std::regex  driver_version {".*", std::regex::optimize};
         std::vector<int> properties;
         std::map<int, std::vector<int>> events;
