@@ -17,7 +17,7 @@ options:
     -h                    show this message and exit
     -c configuration.yaml use configuration.yaml as configuration
 
-/etc/interception/udevmon.d/*.yaml is read if -c is not provided
+/etc/interception/udevmon.d/*.yaml is also read if present
 ```
 
 ### intercept

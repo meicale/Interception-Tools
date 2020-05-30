@@ -38,7 +38,7 @@ void print_usage(std::FILE *stream, const char *program) {
                  "    -h                    show this message and exit\n"
                  "    -c configuration.yaml use configuration.yaml as configuration\n"
                  "\n"
-                 "/etc/interception/udevmon.d/*.yaml is read if -c is not provided\n",
+                 "/etc/interception/udevmon.d/*.yaml is also read if present\n",
                  program);
     // clang-format on
 }
@@ -231,7 +231,7 @@ private:
                              std::strerror(errno));
                 break;
             case 0: {
-                char *command[] = {(char *)"sh", (char *)"-c",
+                char *command[]       = {(char *)"sh", (char *)"-c",
                                    (char *)job.c_str(), nullptr};
                 std::string variables = "DEVNODE=" + devnode;
                 char *environment[]   = {(char *)variables.c_str(), nullptr};
@@ -294,12 +294,18 @@ void kill_zombies(int /*signum*/) {
     while (waitpid(-1, &status, WNOHANG) > 0)
         ;
 }
-}
+}  // namespace
 
 int main(int argc, char *argv[]) try {
     using std::perror;
 
-    std::vector<YAML::Node> configs;
+    std::vector<YAML::Node> configs =
+        scan_config("/etc/interception/udevmon.d");
+
+    if (configs.size() > 0)
+        printf(
+            "%zu configuration files read from /etc/interception/udevmon.d\n",
+            configs.size());
 
     int opt;
     while ((opt = getopt(argc, argv, "hc:")) != -1) {
@@ -307,7 +313,11 @@ int main(int argc, char *argv[]) try {
             case 'h':
                 return print_usage(stdout, argv[0]), EXIT_SUCCESS;
             case 'c':
-                configs.push_back(YAML::LoadFile(optarg));
+                try {
+                    configs.push_back(YAML::LoadFile(optarg));
+                } catch (const YAML::Exception &e) {
+                    printf("ignoring %s, reason: %s\n", optarg, e.msg.c_str());
+                }
                 continue;
         }
 
@@ -315,10 +325,7 @@ int main(int argc, char *argv[]) try {
     }
 
     if (configs.empty())
-        configs = scan_config("/etc/interception/udevmon.d");
-
-    if (configs.empty())
-        return print_usage(stderr, argv[0]), EXIT_FAILURE;
+        return perror("couldn't read any configuration"), EXIT_FAILURE;
 
     jobs_launcher launch_jobs_for_devnode(configs);
 

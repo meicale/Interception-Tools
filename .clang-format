@@ -1,6 +1,7 @@
 BasedOnStyle: Google
 Standard: Cpp11
 SortIncludes: false
+SortUsingDeclarations: false
 AccessModifierOffset: -4
 PointerBindsToType: false
 DerivePointerBinding: false
