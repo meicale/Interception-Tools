@@ -91,14 +91,13 @@ private:
     struct job_matcher {
         // clang-format off
         std::string job;
-        std::regex  name      {".*", std::regex::optimize | std::regex::nosubs};
-        std::regex  location  {".*", std::regex::optimize | std::regex::nosubs};
-        std::regex  id        {".*", std::regex::optimize | std::regex::nosubs};
-        std::regex  product   {".*", std::regex::optimize | std::regex::nosubs};
-        std::regex  vendor    {".*", std::regex::optimize | std::regex::nosubs};
-        std::regex  bustype   {".*", std::regex::optimize | std::regex::nosubs};
-        std::regex  driver_version {".*", std::regex::optimize |
-                                          std::regex::nosubs};
+        std::regex  name      {".*", std::regex::optimize};
+        std::regex  location  {".*", std::regex::optimize};
+        std::regex  id        {".*", std::regex::optimize};
+        std::regex  product   {".*", std::regex::optimize};
+        std::regex  vendor    {".*", std::regex::optimize};
+        std::regex  bustype   {".*", std::regex::optimize};
+        std::regex  driver_version {".*", std::regex::optimize};
         std::vector<int> properties;
         std::map<int, std::vector<int>> events;
         // clang-format on
@@ -121,27 +120,20 @@ private:
                 throw invalid_argument("missing DEVICE field in job node");
 
             if (auto name = device["NAME"])
-                this->name.assign(name.as<string>(),
-                                  regex::optimize | regex::nosubs);
+                this->name.assign(name.as<string>(), regex::optimize);
             if (auto location = device["LOCATION"])
-                this->location.assign(location.as<string>(),
-                                      regex::optimize | regex::nosubs);
+                this->location.assign(location.as<string>(), regex::optimize);
             if (auto id = device["ID"])
-                this->id.assign(id.as<string>(),
-                                regex::optimize | regex::nosubs);
+                this->id.assign(id.as<string>(), regex::optimize);
             if (auto product = device["PRODUCT"])
-                this->product.assign(product.as<string>(),
-                                     regex::optimize | regex::nosubs);
+                this->product.assign(product.as<string>(), regex::optimize);
             if (auto vendor = device["VENDOR"])
-                this->vendor.assign(vendor.as<string>(),
-                                    regex::optimize | regex::nosubs);
+                this->vendor.assign(vendor.as<string>(), regex::optimize);
             if (auto bustype = device["BUSTYPE"])
-                this->bustype.assign(bustype.as<string>(),
-                                     regex::optimize | regex::nosubs);
+                this->bustype.assign(bustype.as<string>(), regex::optimize);
             if (auto driver_version = device["DRIVER_VERSION"])
-                this->driver_version.assign(
-                    driver_version.as<string>(),
-                    regex::optimize | regex::nosubs);
+                this->driver_version.assign(driver_version.as<string>(),
+                                            regex::optimize);
             if (auto properties = device["PROPERTIES"]) {
                 for (const auto &property_node : properties) {
                     auto property_name = property_node.as<string>();
