@@ -315,7 +315,7 @@ int main(int argc, char *argv[]) try {
             case 'c':
                 try {
                     configs.push_back(YAML::LoadFile(optarg));
-                } catch (const YAML::Exception &e) {
+                } catch (const YAML::BadFile &e) {
                     printf("ignoring %s, reason: %s\n", optarg, e.msg.c_str());
                 }
                 continue;

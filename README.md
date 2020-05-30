@@ -76,8 +76,8 @@ I'm maintaining an Archlinux package on AUR:
 - <https://aur.archlinux.org/packages/interception-tools>
 
 It wraps `udevmon` in a systemd service that can be easily started, stopped
-and enabled to execute on boot. The service expects the configuration file at
-`/etc/udevmon.yaml`.
+and enabled to execute on boot. The service expects configuration files at
+`/etc/udevmon.yaml` and/or at `/etc/interception/udevmon.d/*.yaml`.
 
 I don't use Ubuntu and recommend Archlinux instead, as it provides the AUR, so I
 don't maintain PPAs. For more information on Ubuntu/Debian installation check
