@@ -11,11 +11,13 @@ events of `evdev` devices:
 ```
 udevmon - monitor input devices for launching tasks
 
-usage: udevmon [-h] -c configuration.yaml
+usage: udevmon [-h] [-c configuration.yaml]
 
 options:
     -h                    show this message and exit
     -c configuration.yaml use configuration.yaml as configuration
+
+    /etc/interception/udevmon.d/*.yaml is read if -c is not provided
 ```
 
 ### intercept

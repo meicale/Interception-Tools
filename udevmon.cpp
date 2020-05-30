@@ -12,6 +12,7 @@
 
 extern "C" {
 #include <fcntl.h>
+#include <dirent.h>
 #include <signal.h>
 #include <unistd.h>
 #include <sys/wait.h>
@@ -31,11 +32,13 @@ void print_usage(std::FILE *stream, const char *program) {
     std::fprintf(stream,
                  "udevmon - monitor input devices for launching tasks\n"
                  "\n"
-                 "usage: %s [-h] -c configuration.yaml\n"
+                 "usage: %s [-h] [-c configuration.yaml]\n"
                  "\n"
                  "options:\n"
                  "    -h                    show this message and exit\n"
-                 "    -c configuration.yaml use configuration.yaml as configuration\n",
+                 "    -c configuration.yaml use configuration.yaml as configuration\n"
+                 "\n"
+                 "/etc/interception/udevmon.d/*.yaml is read if -c is not provided\n",
                  program);
     // clang-format on
 }
@@ -46,9 +49,10 @@ bool is_int(const std::string &s) {
 
 class jobs_launcher {
 public:
-    jobs_launcher(const YAML::Node &config) {
-        for (const auto &job : config)
-            job_matchers.emplace_back(job);
+    jobs_launcher(const std::vector<YAML::Node> &configs) {
+        for (const auto &config : configs)
+            for (const auto &job : config)
+                job_matchers.emplace_back(job);
     }
 
     void operator()(const std::string &devnode) const {
@@ -278,6 +282,21 @@ std::string get_devnode(udev_device *device, bool initial_scan = false) {
     return devnode;
 }
 
+std::vector<YAML::Node> scan_config(const std::string &directory) {
+    static const std::regex yaml_extension{R"(.*\.ya?ml)",
+                                           std::regex::optimize};
+    std::vector<YAML::Node> configs;
+
+    if (DIR *dir = opendir(directory.c_str()))
+        while (dirent *entry = readdir(dir))
+            if (entry->d_type == DT_REG &&
+                regex_match(entry->d_name, yaml_extension))
+                configs.push_back(
+                    YAML::LoadFile(directory + '/' + entry->d_name));
+
+    return configs;
+}
+
 void kill_zombies(int /*signum*/) {
     int status;
     while (waitpid(-1, &status, WNOHANG) > 0)
@@ -288,8 +307,7 @@ void kill_zombies(int /*signum*/) {
 int main(int argc, char *argv[]) try {
     using std::perror;
 
-    YAML::Node config;
-    bool configured = false;
+    std::vector<YAML::Node> configs;
 
     int opt;
     while ((opt = getopt(argc, argv, "hc:")) != -1) {
@@ -297,20 +315,20 @@ int main(int argc, char *argv[]) try {
             case 'h':
                 return print_usage(stdout, argv[0]), EXIT_SUCCESS;
             case 'c':
-                if (configured)
-                    break;
-                config     = YAML::LoadFile(optarg);
-                configured = true;
+                configs.push_back(YAML::LoadFile(optarg));
                 continue;
         }
 
         return print_usage(stderr, argv[0]), EXIT_FAILURE;
     }
 
-    if (!configured)
+    if (configs.empty())
+        configs = scan_config("/etc/interception/udevmon.d");
+
+    if (configs.empty())
         return print_usage(stderr, argv[0]), EXIT_FAILURE;
 
-    jobs_launcher launch_jobs_for_devnode(config);
+    jobs_launcher launch_jobs_for_devnode(configs);
 
     struct sigaction sa {};
     sa.sa_flags   = SA_NOCLDSTOP;
