@@ -281,7 +281,7 @@ std::vector<YAML::Node> scan_config(const std::string &directory) {
 
     if (DIR *dir = opendir(directory.c_str()))
         while (dirent *entry = readdir(dir))
-            if (entry->d_type == DT_REG &&
+            if ((entry->d_type == DT_REG || entry->d_type == DT_LNK) &&
                 regex_match(entry->d_name, yaml_extension))
                 configs.push_back(
                     YAML::LoadFile(directory + '/' + entry->d_name));
