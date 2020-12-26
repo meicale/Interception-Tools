@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.0)
 
 project(interception-tools)
 
+find_package(Boost REQUIRED)
+find_package(Threads REQUIRED)
+
 add_executable(udevmon udevmon.cpp)
 target_include_directories(udevmon PRIVATE "/usr/include/libevdev-1.0")
 target_compile_options(udevmon PRIVATE -Wall -Wextra -pedantic -std=c++11)
@@ -17,6 +20,12 @@ target_include_directories(uinput PRIVATE "/usr/include/libevdev-1.0")
 target_compile_options(uinput PRIVATE -Wall -Wextra -pedantic -std=c++11)
 target_link_libraries(uinput evdev udev yaml-cpp)
 
+add_executable(mux mux.cpp)
+target_include_directories(mux PRIVATE ${Boost_INCLUDE_DIRS})
+target_compile_options(mux PRIVATE -Wall -Wextra -pedantic -std=c++11 -DBOOST_DATE_TIME_NO_LIB)
+target_link_libraries(mux Threads::Threads rt)
+
 install(TARGETS udevmon RUNTIME DESTINATION bin)
 install(TARGETS intercept RUNTIME DESTINATION bin)
 install(TARGETS uinput RUNTIME DESTINATION bin)
+install(TARGETS mux RUNTIME DESTINATION bin)

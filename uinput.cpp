@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstdlib>
 #include <algorithm>
+#include <stdexcept>
 
 extern "C" {
 #include <fcntl.h>

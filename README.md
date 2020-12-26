@@ -47,12 +47,30 @@ options:
     -d devnode        merge reference device description to resulting virtual device
 ```
 
-## Dependencies
+### mux
+```
+mux - mux streams of input events
 
-- [CMake][cmake]
+usage: mux [-h] [-c name | -i name | -o name]
+
+options:
+    -h        show this message and exit
+    -c name   name of muxer to create
+    -i name   name of muxer to read input from
+    -o name   name of muxer to write output to
+```
+
+## Runtime dependencies
+
 - [libevdev][]
 - [libudev][]
 - [yaml-cpp][]
+- [glibc][]
+
+## Build dependencies
+
+- [CMake][cmake]
+- [Boost.Interprocess][interprocess]
 
 ## Official Plugins
 
@@ -197,8 +215,8 @@ that act as both keyboard and mouse, for example.
 
 Explicitly calling `intercept` and `uinput` on specific devices can be
 cumbersome, that's where `udevmon` enters the scene. `udevmon` accepts a YAML
-configuration with a list of _jobs_ (`sh` commands) to be executed in case the
-device matches a given description. For example:
+configuration with a list of _jobs_ (`sh` commands by default) to be executed
+in case the device matches a given description. For example:
 
 ```yaml
 - JOB: "intercept -g $DEVNODE | y2z | x2y | uinput -d $DEVNODE"
@@ -211,11 +229,57 @@ Calling `udevmon` with this configuration sets it to launch the given command
 for whatever device that responds to `KEY_X` or `KEY_Y`. It
 will monitor for any device that is already attached or that gets attached. When
 executing the task the `$DEVNODE` environment variable is set to the path of the
-matching device. The "full" YAML based spec is as follows:
+matching device.
+
+If device specific interception is more desirable, it's simpler to use the `LINK`
+configuration as the device selector, for example:
 
 ```yaml
-- JOB:              S
+- JOB: intercept -g $DEVNODE | caps2esc | uinput -d $DEVNODE
   DEVICE:
+    LINK: /dev/input/by-id/usb-SEMITEK_USB-HID_Gaming_Keyboard_SN0000000001-event-kbd
+```
+
+This way, only [the device that produces that link][sk61] will have [caps2esc][] applied.
+
+A more involved configuration may need to combine (or just observe) the input
+of two devices to make decisions. That's where the `mux` tool comes at hand:
+
+```yaml
+- JOB: mux -c caps2esc
+- JOB:
+    - intercept -g $DEVNODE | mux -o caps2esc
+    - mux -i caps2esc | caps2esc | uinput -d $DEVNODE
+  DEVICE:
+    LINK: /dev/input/by-id/usb-SEMITEK_USB-HID_Gaming_Keyboard_SN0000000001-event-kbd
+- JOB:
+    - intercept $DEVNODE | mux -o caps2esc
+  DEVICE:
+    LINK: /dev/input/by-id/usb-Logitech_USB_Receiver-if02-event-mouse
+```
+
+The `mux` tool serves to combine two input streams into one. A _muxer_ first
+needs to be created with a name in a standalone job not associated with any
+device (it's then just a command that's executed when `udevmon` starts). Then
+this muxer can be used for reading and writing from multiple device streams.
+Here in this example, when the keyboard is connected, it's grabbed and a clone
+of it is put in place with `caps2esc` applied, but this process is now split to
+accommodate a muxer in the middle. The cloned device will receive the input
+from the muxer, which itself not only receives input from the keyboard, but
+also from _observed_ input (not grabbed) from mouse. The buttons of the mouse
+generate `EV_KEY` events, so `caps2esc` will transparently accept them, making
+"Ctrl + Click" work from "Caps Lock + Click". The cloned device clones the
+keyboard, not the mouse, so if mouse events reach it, it won't be reproduced,
+hence not duplicating mouse events.
+
+The "full" YAML based spec is as follows:
+
+```yaml
+SHELL:              LA
+---
+- JOB:              S | LS
+  DEVICE:
+    LINK:           R
     NAME:           R
     LOCATION:       R
     PRODUCT:        R
@@ -231,7 +295,8 @@ matching device. The "full" YAML based spec is as follows:
 
 Where:
 
-- `S`: `sh` command string.
+- `LA`: shell replacement, like `[zsh, -c]`, default is `[sh, -c]`.
+- `S` | `LS` : shell command string, or a list of shell command strings.
 - `R`: regular expression string.
 - `LP`: list of all properties (name or code) the device must have.
 - `LE`: list of any events (name or code) of a given type the device can respond.
@@ -251,10 +316,13 @@ Where:
 [libudev]: https://www.freedesktop.org/software/systemd/man/libudev.html
 [libevdev]: https://www.freedesktop.org/software/libevdev/doc/latest/index.html
 [yaml-cpp]: https://github.com/jbeder/yaml-cpp
+[glibc]: https://www.gnu.org/software/libc
+[interprocess]: https://www.boost.org/doc/libs/release/libs/interprocess
 [caps2esc]: https://gitlab.com/interception/linux/plugins/caps2esc
 [space2meta]: https://gitlab.com/interception/linux/plugins/space2meta
 [dual-function-keys]: https://gitlab.com/interception/linux/plugins/dual-function-keys
 [hideaway]: https://gitlab.com/interception/linux/plugins/hideaway
+[sk61]: https://epomaker.com/products/epomaker-sk61
 [ecmascript]: http://en.cppreference.com/w/cpp/regex/ecmascript
 [input-event-codes]: https://github.com/torvalds/linux/blob/master/include/uapi/linux/input-event-codes.h
 
