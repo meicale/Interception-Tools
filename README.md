@@ -85,27 +85,42 @@ The following daemonized sample execution increases `udevmon` priority (since
 it'll be responsible for a vital input device, just to make sure it stays
 responsible):
 
-`sudo nice -n -20 udevmon -c udevmon.yaml >udevmon.log 2>udevmon.err &`
+```
+$ sudo nice -n -20 udevmon -c udevmon.yaml >udevmon.log 2>udevmon.err &
+```
+
+The usual route though is simply to use the provided systemd unit.
 
 ## Installation
 
-I'm maintaining an Archlinux package on AUR:
+### Archlinux
 
-- <https://aur.archlinux.org/packages/interception-tools>
+It's available from [community](https://archlinux.org/packages/community/x86_64/interception-tools/):
 
-It wraps `udevmon` in a systemd service that can be easily started, stopped
-and enabled to execute on boot. The service expects configuration files at
-`/etc/udevmon.yaml` and/or at `/etc/interception/udevmon.d/*.yaml`.
+```
+$ pacman -S interception-tools
+```
+
+### Fedora
+
+```
+$ sudo dnf copr enable fszymanski/interception-tools
+$ sudo dnf install interception-tools
+```
+
+Or if building from sources, these are the dependencies:
+
+```
+$ dnf install cmake yaml-cpp-devel libevdev-devel systemd-devel
+```
+
+### Ubuntu
 
 I don't use Ubuntu and recommend Archlinux instead, as it provides the AUR, so I
 don't maintain PPAs. For more information on Ubuntu/Debian installation check
 this:
 
 - <https://askubuntu.com/questions/979359/how-do-i-install-caps2esc>
-
-### Fedora
-
-`dnf install cmake yaml-cpp-devel libevdev-devel systemd-devel`
 
 ## Building
 
@@ -258,21 +273,24 @@ of two devices to make decisions. That's where the `mux` tool comes at hand:
     LINK: /dev/input/by-id/usb-Logitech_USB_Receiver-if02-event-mouse
 ```
 
-The `mux` tool serves to combine two input streams into one. A _muxer_ first
-needs to be created with a name in a standalone job not associated with any
-device (it's then just a command that's executed when `udevmon` starts). Then
-this muxer can be used for reading and writing from multiple device streams.
-Here in this example, when the keyboard is connected, it's grabbed and a clone
+The `mux` tool serves to combine input streams. A _muxer_ first needs to be
+created with a name in a _standalone job_ not associated with any device (it's
+then just a command executed when `udevmon` starts). Then this muxer can be
+used for reading and writing from multiple device streams.
+
+In the example above, when the keyboard is connected, it's grabbed and a clone
 of it is put in place with `caps2esc` applied, but this process is now split to
 accommodate a muxer in the middle. The cloned device will receive the input
 from the muxer, which itself not only receives input from the keyboard, but
 also from _observed_ input (not grabbed) from mouse. The buttons of the mouse
 generate `EV_KEY` events, so `caps2esc` will transparently accept them, making
-"Ctrl + Click" work from "Caps Lock + Click". The cloned device clones the
-keyboard, not the mouse, so if mouse events reach it, it won't be reproduced,
-hence not duplicating mouse events.
+“Caps Lock + Click” work as “Control + Click”.
 
-The "full" YAML based spec is as follows:
+As in this case the final target cloned device clones a keyboard, not a mouse,
+if mouse events reach it from muxing multiple streams, they won't be
+reproduced, hence not duplicating the _observed_ mouse events.
+
+The “full” YAML based spec is as follows:
 
 ```yaml
 SHELL:              LA
