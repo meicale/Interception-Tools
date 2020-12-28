@@ -222,7 +222,7 @@ uinput -p -d /dev/input/by-id/my-kbd -d /dev/input/by-id/my-mouse -c my-extra.ya
 ```
 
 merges `my-kbd`, `my-mouse` and `my-extra.yaml` into a single YAML output. The
-characteristics that aren't lists are "merged" by overriding the previous when
+characteristics that aren't lists are “merged” by overriding the previous when
 they are present on both inputs. This allows creating hybrid virtual devices
 that act as both keyboard and mouse, for example.
 
