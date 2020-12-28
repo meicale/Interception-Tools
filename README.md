@@ -234,20 +234,20 @@ configuration with a list of _jobs_ (`sh` commands by default) to be executed
 in case the device matches a given description. For example:
 
 ```yaml
-- JOB: "intercept -g $DEVNODE | y2z | x2y | uinput -d $DEVNODE"
+- JOB: intercept -g $DEVNODE | y2z | x2y | uinput -d $DEVNODE
   DEVICE:
     EVENTS:
       EV_KEY: [KEY_X, KEY_Y]
 ```
 
 Calling `udevmon` with this configuration sets it to launch the given command
-for whatever device that responds to `KEY_X` or `KEY_Y`. It
-will monitor for any device that is already attached or that gets attached. When
-executing the task the `$DEVNODE` environment variable is set to the path of the
-matching device.
+for whatever device that responds to `KEY_X` or `KEY_Y`. It will monitor for
+any device that is already attached or that gets attached. When executing the
+task the `$DEVNODE` environment variable is set to the path of the matching
+device.
 
-If device specific interception is more desirable, it's simpler to use the `LINK`
-configuration as the device selector, for example:
+If device specific interception is more desirable, it's simpler to use the
+`LINK` configuration as the device selector, for example:
 
 ```yaml
 - JOB: intercept -g $DEVNODE | caps2esc | uinput -d $DEVNODE
@@ -255,7 +255,8 @@ configuration as the device selector, for example:
     LINK: /dev/input/by-id/usb-SEMITEK_USB-HID_Gaming_Keyboard_SN0000000001-event-kbd
 ```
 
-This way, only [the device that produces that link][sk61] will have [caps2esc][] applied.
+This way, only [the device that produces that link][sk61] will have
+[caps2esc][] applied.
 
 A more involved configuration may need to combine (or just observe) the input
 of two devices to make decisions. That's where the `mux` tool comes at hand:
