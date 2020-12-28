@@ -40,7 +40,8 @@ int main(int argc, char *argv[]) try {
                 return print_usage(stdout, argv[0]), EXIT_SUCCESS;
             case 'c':
                 message_queue::remove(optarg);
-                message_queue(create_only, optarg, 256, sizeof(input_event));
+                message_queue(create_only, optarg, 256, sizeof(input_event),
+                              0600);
                 return EXIT_SUCCESS;
             case 'i':
                 muxer_name = optarg;
