@@ -327,6 +327,7 @@ Where:
 
 ## Plugin Guidelines
 
+### Correct generation of event sequences
 A plugin that's going to generate event sequences internally (not the case for
 the trivial `x2y` example above), for keyboard at least, is required to provide
 `EV_SYN` events and a short delay (to obtain different event timestamps),
@@ -334,6 +335,13 @@ between key events. This is what happens when you type on a real keyboard, and
 [has been proved necessary][ev-syn] for applications to behave well. As a
 general guideline, one should explore how real devices behave while generating
 events (with `evtest` for example) for mimicking them with success.
+
+### Correct process priority
+Always use a high process priority (low _niceness_ level, `udevmon.service`
+uses `-20`) when executing tools that manipulate input, otherwise you may get
+[unwanted effects][niceness]. Without _Interception Tools_, your input is
+treated with high priority at kernel level, and you should try to resemble that
+now on user mode, which is the level where the tools run.
 
 ## Software Alternatives
 
@@ -355,6 +363,7 @@ events (with `evtest` for example) for mimicking them with success.
 [ecmascript]: http://en.cppreference.com/w/cpp/regex/ecmascript
 [input-event-codes]: https://github.com/torvalds/linux/blob/master/include/uapi/linux/input-event-codes.h
 [ev-syn]: https://gitlab.com/interception/linux/tools/-/issues/29#note_474260470
+[niceness]: https://gitlab.com/interception/linux/tools/-/issues/29#note_474310306
 
 ## License
 
