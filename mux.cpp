@@ -69,11 +69,12 @@ int main(int argc, char *argv[]) try {
         for (;;) {
             muxer.receive(&input, sizeof input, size, priority);
             if (size != sizeof input)
-                std::fprintf(stderr,
-                             "unexpected input event size while reading from "
-                             "input event queue\n");
+                throw std::runtime_error(
+                    "unexpected input event size while reading from input "
+                    "event queue\n");
             else if (fwrite(&input, sizeof input, 1, stdout) != 1)
-                std::fprintf(stderr, "error writing input event to stdout\n");
+                throw std::runtime_error(
+                    "error writing input event to stdout\n");
         }
     } else {
         std::setbuf(stdin, nullptr);
@@ -82,7 +83,8 @@ int main(int argc, char *argv[]) try {
             if (fread(&input, sizeof input, 1, stdin) == 1)
                 muxer.send(&input, sizeof input, 0);
             else
-                std::fprintf(stderr, "error reading input event from stdin\n");
+                throw std::runtime_error(
+                    "error reading input event from stdin\n");
     }
 } catch (const std::exception &e) {
     return std::fprintf(stderr,
