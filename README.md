@@ -327,12 +327,12 @@ Where:
 ## Plugin Guidelines
 
 A plugin that's going to generate event sequences internally (not the case for
-the trivial `x2y` examples above), for keyboard at least, is required to
-provide `EV_SYN` events and a short delay (to obtain different event
-timestamps), between key events. This is what happens when you type on a real
-keyboard, and [has been proved necessary][ev-syn] for applications to behave
-well. As a general guideline, one should explore how real devices behave while
-generating events (with `evtest` for example) for mimicking them with success.
+the trivial `x2y` example above), for keyboard at least, is required to provide
+`EV_SYN` events and a short delay (to obtain different event timestamps),
+between key events. This is what happens when you type on a real keyboard, and
+[has been proved necessary][ev-syn] for applications to behave well. As a
+general guideline, one should explore how real devices behave while generating
+events (with `evtest` for example) for mimicking them with success.
 
 ## Software Alternatives
 
