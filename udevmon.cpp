@@ -215,7 +215,6 @@ struct job {
                         command[j] = const_cast<char *>(cmds[i][j].c_str());
                     command[cmds[i].size()] = nullptr;
                     char *environment[]     = {nullptr};
-                    sleep_for(milliseconds(i * 50));
                     execvpe(command[0], command.get(), environment);
                     std::fprintf(stderr,
                                  R"(exec failed for job "%s" with error "%s")"
@@ -246,7 +245,6 @@ struct job {
                     std::string variables   = "DEVNODE=" + devnode;
                     char *environment[]     = {
                         const_cast<char *>(variables.c_str()), nullptr};
-                    sleep_for(milliseconds(i * 50));
                     execvpe(command[0], command.get(), environment);
                     std::fprintf(stderr,
                                  R"(exec failed for devnode %s, job "%s" )"
@@ -433,6 +431,8 @@ int main(int argc, char *argv[]) try {
         return perror("couldn't summon zombie killer"), EXIT_FAILURE;
 
     launcher.launch_bare_jobs();
+
+    sleep_for(milliseconds(100));
 
     udev *udev = udev_new();
     if (!udev)
