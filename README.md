@@ -324,6 +324,16 @@ Where:
   given event type.
 - Property names and event types and names are taken from [`<linux/input-event-codes.h>`][input-event-codes].
 
+## Plugin Guidelines
+
+A plugin that's going to generate event sequences internally (not the case for
+the trivial `x2y` examples above), for keyboard at least, is required to
+provide `EV_SYN` events and a short delay (to obtain different event
+timestamps), between key events. This is what happens when you type on a real
+keyboard, and [has been proved necessary][ev-syn] for applications to behave
+well. As a general guideline, one should explore how real devices behave while
+generating events (with `evtest` for example) for mimicking them with success.
+
 ## Software Alternatives
 
 - [mxk](http://welz.org.za/projects/mxk)
@@ -343,6 +353,7 @@ Where:
 [sk61]: https://epomaker.com/products/epomaker-sk61
 [ecmascript]: http://en.cppreference.com/w/cpp/regex/ecmascript
 [input-event-codes]: https://github.com/torvalds/linux/blob/master/include/uapi/linux/input-event-codes.h
+[ev-syn]: https://gitlab.com/interception/linux/tools/-/issues/29#note_474260470
 
 ## License
 
