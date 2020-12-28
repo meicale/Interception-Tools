@@ -125,12 +125,10 @@ this:
 ## Building
 
 ```
-$ git clone git@gitlab.com:interception/linux/tools.git
-$ cd tools
-$ mkdir build
-$ cd build
-$ cmake ..
-$ make
+$ git clone git@gitlab.com:interception/linux/tools.git interception-tools
+$ cd interception-tools
+$ cmake -B build -DCMAKE_BUILD_TYPE=Release
+$ cmake --build build
 ```
 
 ## How It Works
@@ -370,7 +368,8 @@ now on user mode, which is the level where the tools run.
 _Interception Tools_ is **dual-licensed**.
 
 To be embedded and redistributed as part of a proprietary solution, contact me
-at francisco@oblita.com for commercial licensing, otherwise it's under
+at francisco+interception@nosubstance.me for commercial licensing, otherwise
+it's under
 
 <a href="https://gitlab.com/interception/linux/tools/blob/master/LICENSE.md">
     <img src="https://www.gnu.org/graphics/gplv3-127x51.png" alt="GPLv3">
