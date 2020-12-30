@@ -449,12 +449,18 @@ int main(int argc, char *argv[]) try {
                 int fd = open(optarg, O_RDONLY);
                 if (fd < 0)
                     return perror("open failed"), EXIT_FAILURE;
+                struct defer1 {
+                    int fd;
+                    ~defer1() { close(fd); }
+                } close{fd};
                 libevdev *dev;
                 if (libevdev_new_from_fd(fd, &dev) < 0)
                     return perror("libevdev_new_from_fd failed"), EXIT_FAILURE;
+                struct defer2 {
+                    libevdev *dev;
+                    ~defer2() { libevdev_free(dev); }
+                } free{dev};
                 configs.push_back(YAML::Load(yaml_create_from_evdev(dev)));
-                libevdev_free(dev);
-                close(fd);
                 continue;
             }
             case 'p':
@@ -471,16 +477,35 @@ int main(int argc, char *argv[]) try {
         return print_usage(stderr, argv[0]), EXIT_FAILURE;
 
     libevdev *dev = evdev_create_from_yaml(configs);
+    struct defer1 {
+        libevdev *dev;
+        ~defer1() { libevdev_free(dev); }
+    } free{dev};
     libevdev_uinput *uidev;
     if (libevdev_uinput_create_from_device(dev, LIBEVDEV_UINPUT_OPEN_MANAGED,
                                            &uidev) < 0)
         return perror("libevdev_uinput_create_from_device failed"),
                EXIT_FAILURE;
+    struct defer2 {
+        libevdev_uinput *uidev;
+        ~defer2() { libevdev_uinput_destroy(uidev); }
+    } destroy{uidev};
 
     if (print) {
         int fd = open(libevdev_uinput_get_devnode(uidev), O_RDONLY);
+        if (fd < 0)
+            return perror("open failed"), EXIT_FAILURE;
+        struct defer1 {
+            int fd;
+            ~defer1() { close(fd); }
+        } close{fd};
+        libevdev *dev;
         if (libevdev_new_from_fd(fd, &dev) < 0)
             return perror("libevdev_new_from_fd failed"), EXIT_FAILURE;
+        struct defer2 {
+            libevdev *dev;
+            ~defer2() { libevdev_free(dev); }
+        } free{dev};
         return puts(yaml_create_from_evdev(dev).c_str()), EXIT_SUCCESS;
     }
 
@@ -490,9 +515,6 @@ int main(int argc, char *argv[]) try {
         if (libevdev_uinput_write_event(uidev, input.type, input.code,
                                         input.value) < 0)
             return perror("libevdev_uinput_write_event failed"), EXIT_FAILURE;
-
-    libevdev_uinput_destroy(uidev);
-    libevdev_free(dev);
 } catch (const std::exception &e) {
     return std::fprintf(stderr,
                         R"(an exception occurred: "%s")"
