@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <memory>
 #include <string>
 #include <vector>
 #include <stdexcept>
@@ -25,16 +26,14 @@ void print_usage(std::FILE *stream, const char *program) {
                  "    -h        show this message and exit\n"
                  "    -c name   name of muxer to create (repeatable)\n"
                  "    -i name   name of muxer to read input from\n"
-                 "    -o name   name of muxer to write output to\n",
+                 "    -o name   name of muxer to write output to (repeatable)\n",
                  program);
     // clang-format on
 }
 
-std::string muxer_name;
-
 int main(int argc, char *argv[]) try {
     char mode = 0;
-    std::vector<std::string> muxers_to_create;
+    std::vector<std::string> muxer_names;
     for (int opt; (opt = getopt(argc, argv, "hc:i:o:")) != -1;) {
         switch (opt) {
             case 'h':
@@ -43,19 +42,19 @@ int main(int argc, char *argv[]) try {
                 if (mode && mode != 'c')
                     break;
                 mode = 'c';
-                muxers_to_create.push_back(optarg);
+                muxer_names.push_back(optarg);
                 continue;
             case 'i':
                 if (mode)
                     break;
-                mode       = 'i';
-                muxer_name = optarg;
+                mode = 'i';
+                muxer_names.push_back(optarg);
                 continue;
             case 'o':
-                if (mode)
+                if (mode && mode != 'o')
                     break;
-                mode       = 'o';
-                muxer_name = optarg;
+                mode = 'o';
+                muxer_names.push_back(optarg);
                 continue;
         }
 
@@ -66,15 +65,17 @@ int main(int argc, char *argv[]) try {
         return print_usage(stderr, argv[0]), EXIT_FAILURE;
 
     if (mode == 'c') {
-        for (const auto &muxer : muxers_to_create) {
-            message_queue::remove(muxer.c_str());
-            message_queue(create_only, muxer.c_str(), 256, sizeof(input_event),
-                          0600);
+        for (const auto &muxer_name : muxer_names) {
+            message_queue::remove(muxer_name.c_str());
+            message_queue(create_only, muxer_name.c_str(), 256,
+                          sizeof(input_event), 0600);
         }
         return EXIT_SUCCESS;
     }
 
-    message_queue muxer(open_only, muxer_name.c_str());
+    std::vector<std::unique_ptr<message_queue>> muxers;
+    for (const auto &muxer_name : muxer_names)
+        muxers.emplace_back(new message_queue(open_only, muxer_name.c_str()));
 
     switch (mode) {
         case 'i': {
@@ -83,7 +84,7 @@ int main(int argc, char *argv[]) try {
             unsigned int priority;
             message_queue::size_type size;
             for (;;) {
-                muxer.receive(&input, sizeof input, size, priority);
+                muxers.front()->receive(&input, sizeof input, size, priority);
                 if (size != sizeof input)
                     throw std::runtime_error(
                         "unexpected input event size while reading from input "
@@ -98,7 +99,8 @@ int main(int argc, char *argv[]) try {
             input_event input;
             for (;;)
                 if (fread(&input, sizeof input, 1, stdin) == 1)
-                    muxer.send(&input, sizeof input, 0);
+                    for (auto &muxer : muxers)
+                        muxer->try_send(&input, sizeof input, 0);
                 else
                     throw std::runtime_error(
                         "error reading input event from stdin\n");
