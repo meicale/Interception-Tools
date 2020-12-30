@@ -55,7 +55,7 @@ usage: mux [-h] [-c name | -i name | -o name]
 
 options:
     -h        show this message and exit
-    -c name   name of muxer to create
+    -c name   name of muxer to create (repeatable)
     -i name   name of muxer to read input from
     -o name   name of muxer to write output to
 ```
