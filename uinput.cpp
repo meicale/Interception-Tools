@@ -14,7 +14,6 @@ extern "C" {
 #include <yaml-cpp/yaml.h>
 #include <libevdev/libevdev-uinput.h>
 
-namespace {
 std::map<int, std::string> bus_string = {
 #ifdef BUS_PCI
     {BUS_PCI, "BUS_PCI"},
@@ -430,7 +429,6 @@ libevdev *evdev_create_from_yaml(const std::vector<YAML::Node> &configs) {
     }
 
     return dev;
-}
 }
 
 int main(int argc, char *argv[]) try {
