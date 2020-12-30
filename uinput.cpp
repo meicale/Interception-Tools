@@ -399,6 +399,11 @@ libevdev *evdev_create_from_yaml(const std::vector<YAML::Node> &configs) {
                         if (auto res = axis.second["RES"])
                             absinfo.resolution = res.as<int>();
 
+                        if (!axis.second["VALUE"] && axis.second["MAX"])
+                            absinfo.value = absinfo.maximum;
+                        if (!axis.second["VALUE"] && axis.second["MIN"])
+                            absinfo.value = absinfo.minimum;
+
                         auto axis_code = libevdev_event_code_from_name(
                             EV_ABS, axis.first.as<string>().c_str());
                         if (axis_code != -1)
