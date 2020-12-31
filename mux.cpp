@@ -88,22 +88,22 @@ int main(int argc, char *argv[]) try {
                 if (size != sizeof input)
                     throw std::runtime_error(
                         "unexpected input event size while reading from input "
-                        "event queue\n");
-                else if (fwrite(&input, sizeof input, 1, stdout) != 1)
+                        "event queue");
+                else if (std::fwrite(&input, sizeof input, 1, stdout) != 1)
                     throw std::runtime_error(
-                        "error writing input event to stdout\n");
+                        "error writing input event to stdout");
             }
         } break;
         case 'o': {
             std::setbuf(stdin, nullptr);
             input_event input;
             for (;;)
-                if (fread(&input, sizeof input, 1, stdin) == 1)
+                if (std::fread(&input, sizeof input, 1, stdin) == 1)
                     for (auto &muxer : muxers)
                         muxer->try_send(&input, sizeof input, 0);
-                else
+                else if (std::ferror(stdin))
                     throw std::runtime_error(
-                        "error reading input event from stdin\n");
+                        "error reading input event from stdin");
         } break;
     }
 } catch (const std::exception &e) {
