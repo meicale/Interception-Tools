@@ -104,6 +104,8 @@ int main(int argc, char *argv[]) try {
                 else if (std::ferror(stdin))
                     throw std::runtime_error(
                         "error reading input event from stdin");
+                else if (std::feof(stdin))
+                    break;
         } break;
     }
 } catch (const std::exception &e) {
