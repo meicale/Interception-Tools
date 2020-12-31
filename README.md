@@ -260,10 +260,9 @@ A more involved configuration may need to combine (or just observe) the input
 of two devices to make decisions. That's where the `mux` tool comes at hand:
 
 ```yaml
-- JOB: mux -c caps2esc
+- JOB: mux -c caps2esc; mux -i caps2esc | caps2esc | uinput -d /dev/input/by-id/usb-SEMITEK_USB-HID_Gaming_Keyboard_SN0000000001-event-kbd
 - JOB:
     - intercept -g $DEVNODE | mux -o caps2esc
-    - mux -i caps2esc | caps2esc | uinput -d $DEVNODE
   DEVICE:
     LINK: /dev/input/by-id/usb-SEMITEK_USB-HID_Gaming_Keyboard_SN0000000001-event-kbd
 - JOB:
@@ -277,13 +276,14 @@ created with a name in a _standalone job_ not associated with any device (it's
 then just a command executed when `udevmon` starts). Then this muxer can be
 used for reading and writing from multiple device streams.
 
-In the example above, when the keyboard is connected, it's grabbed and a clone
-of it is put in place with `caps2esc` applied, but this process is now split to
-accommodate a muxer in the middle. The cloned device will receive the input
-from the muxer, which itself not only receives input from the keyboard, but
-also from _observed_ input (not grabbed) from mouse. The buttons of the mouse
-generate `EV_KEY` events, so `caps2esc` will transparently accept them, making
-“Caps Lock + Click” work as “Control + Click”.
+In the example above, when the keyboard is connected, it's grabbed and its
+input events are sent to the `caps2esc` muxer that was initially created
+alongside the muxer reader pipeline (which doesn't break when devices
+disconnect). The cloned device will receive the input through the muxer, which
+itself not only receives input from the keyboard, but also from _observed_
+input (not grabbed) from mouse. The buttons of the mouse generate `EV_KEY`
+events, so `caps2esc` will accept them, making “Caps Lock + Click” work as
+“Control + Click”.
 
 As in this case the final target cloned device clones a keyboard, not a mouse,
 if mouse events reach it from muxing multiple streams, they won't be
