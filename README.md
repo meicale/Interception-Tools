@@ -260,7 +260,9 @@ A more involved configuration may need to combine (or just observe) the input
 of two devices to make decisions. That's where the `mux` tool comes at hand:
 
 ```yaml
-- JOB: mux -c caps2esc; mux -i caps2esc | caps2esc | uinput -d /dev/input/by-id/usb-SEMITEK_USB-HID_Gaming_Keyboard_SN0000000001-event-kbd
+- JOB: >
+    mux -c caps2esc;
+    mux -i caps2esc | caps2esc | uinput -d /dev/input/by-id/usb-SEMITEK_USB-HID_Gaming_Keyboard_SN0000000001-event-kbd
 - JOB: intercept -g $DEVNODE | mux -o caps2esc
   DEVICE:
     LINK: /dev/input/by-id/usb-SEMITEK_USB-HID_Gaming_Keyboard_SN0000000001-event-kbd
