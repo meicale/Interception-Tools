@@ -261,12 +261,10 @@ of two devices to make decisions. That's where the `mux` tool comes at hand:
 
 ```yaml
 - JOB: mux -c caps2esc; mux -i caps2esc | caps2esc | uinput -d /dev/input/by-id/usb-SEMITEK_USB-HID_Gaming_Keyboard_SN0000000001-event-kbd
-- JOB:
-    - intercept -g $DEVNODE | mux -o caps2esc
+- JOB: intercept -g $DEVNODE | mux -o caps2esc
   DEVICE:
     LINK: /dev/input/by-id/usb-SEMITEK_USB-HID_Gaming_Keyboard_SN0000000001-event-kbd
-- JOB:
-    - intercept $DEVNODE | mux -o caps2esc
+- JOB: intercept $DEVNODE | mux -o caps2esc
   DEVICE:
     LINK: /dev/input/by-id/usb-Logitech_USB_Receiver-if02-event-mouse
 ```
