@@ -287,7 +287,8 @@ events, so `caps2esc` will accept them, making “Caps Lock + Click” work as
 
 As in this case the final target cloned device clones a keyboard, not a mouse,
 if mouse events reach it from muxing multiple streams, they won't be
-reproduced, hence not duplicating the _observed_ mouse events.
+reproduced, hence not duplicating the _observed_ mouse events. [You can also
+grab the mouse, if you want][caps2esc-issue-9-note].
 
 The “full” YAML based spec is as follows:
 
@@ -359,6 +360,7 @@ now on user mode, which is the level where the tools run.
 [dual-function-keys]: https://gitlab.com/interception/linux/plugins/dual-function-keys
 [hideaway]: https://gitlab.com/interception/linux/plugins/hideaway
 [sk61]: https://epomaker.com/products/epomaker-sk61
+[caps2esc-issue-9-note]: https://gitlab.com/interception/linux/plugins/caps2esc/-/issues/9#note_476602097
 [ecmascript]: http://en.cppreference.com/w/cpp/regex/ecmascript
 [input-event-codes]: https://github.com/torvalds/linux/blob/master/include/uapi/linux/input-event-codes.h
 [ev-syn]: https://gitlab.com/interception/linux/tools/-/issues/29#note_474260470
