@@ -442,8 +442,7 @@ int main(int argc, char *argv[]) try {
     std::vector<YAML::Node> configs;
     bool print = false;
 
-    int opt;
-    while ((opt = getopt(argc, argv, "hc:d:p")) != -1) {
+    for (int opt; (opt = getopt(argc, argv, "hc:d:p")) != -1;) {
         switch (opt) {
             case 'h':
                 return print_usage(stdout, argv[0]), EXIT_SUCCESS;

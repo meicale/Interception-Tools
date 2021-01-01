@@ -478,8 +478,7 @@ int main(int argc, char *argv[]) try {
             "%zu configuration files read from /etc/interception/udevmon.d\n",
             configs.size());
 
-    int opt;
-    while ((opt = getopt(argc, argv, "hc:")) != -1) {
+    for (int opt; (opt = getopt(argc, argv, "hc:")) != -1;) {
         switch (opt) {
             case 'h':
                 return print_usage(stdout, argv[0]), EXIT_SUCCESS;

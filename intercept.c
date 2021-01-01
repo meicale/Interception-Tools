@@ -23,8 +23,7 @@ void print_usage(FILE *stream, const char *program) {
 int main(int argc, char *argv[]) {
     int grab = 0;
 
-    int opt;
-    while ((opt = getopt(argc, argv, "hg")) != -1) {
+    for (int opt; (opt = getopt(argc, argv, "hg")) != -1;) {
         switch (opt) {
             case 'h':
                 return print_usage(stdout, argv[0]), EXIT_SUCCESS;
