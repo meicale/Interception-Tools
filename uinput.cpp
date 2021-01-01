@@ -457,14 +457,14 @@ int main(int argc, char *argv[]) try {
                 struct defer1 {
                     int fd;
                     ~defer1() { close(fd); }
-                } close{fd};
+                } defer1{fd};
                 libevdev *dev;
                 if (libevdev_new_from_fd(fd, &dev) < 0)
                     return perror("libevdev_new_from_fd failed"), EXIT_FAILURE;
                 struct defer2 {
                     libevdev *dev;
                     ~defer2() { libevdev_free(dev); }
-                } free{dev};
+                } defer2{dev};
                 configs.push_back(YAML::Load(yaml_create_from_evdev(dev)));
                 continue;
             }
@@ -485,7 +485,7 @@ int main(int argc, char *argv[]) try {
     struct defer1 {
         libevdev *dev;
         ~defer1() { libevdev_free(dev); }
-    } free{dev};
+    } defer1{dev};
     libevdev_uinput *uidev;
     if (libevdev_uinput_create_from_device(dev, LIBEVDEV_UINPUT_OPEN_MANAGED,
                                            &uidev) < 0)
@@ -494,7 +494,7 @@ int main(int argc, char *argv[]) try {
     struct defer2 {
         libevdev_uinput *uidev;
         ~defer2() { libevdev_uinput_destroy(uidev); }
-    } destroy{uidev};
+    } defer2{uidev};
 
     if (print) {
         int fd = open(libevdev_uinput_get_devnode(uidev), O_RDONLY);
@@ -503,14 +503,14 @@ int main(int argc, char *argv[]) try {
         struct defer1 {
             int fd;
             ~defer1() { close(fd); }
-        } close{fd};
+        } defer1{fd};
         libevdev *dev;
         if (libevdev_new_from_fd(fd, &dev) < 0)
             return perror("libevdev_new_from_fd failed"), EXIT_FAILURE;
         struct defer2 {
             libevdev *dev;
             ~defer2() { libevdev_free(dev); }
-        } free{dev};
+        } defer2{dev};
         return puts(yaml_create_from_evdev(dev).c_str()), EXIT_SUCCESS;
     }
 
