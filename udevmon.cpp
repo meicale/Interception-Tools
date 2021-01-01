@@ -215,6 +215,7 @@ struct job {
                         command[j] = const_cast<char *>(cmds[i][j].c_str());
                     command[cmds[i].size()] = nullptr;
                     char *environment[]     = {nullptr};
+                    setpgid(0, 0);
                     execvpe(command[0], command.get(), environment);
                     std::fprintf(stderr,
                                  R"(exec failed for job "%s" with error "%s")"
@@ -224,9 +225,11 @@ struct job {
             }
     }
 
-    void launch_for(const std::string &devnode) const {
-        for (size_t i = 0; i < cmds.size(); ++i)
-            switch (fork()) {
+    std::vector<__pid_t> launch_for(const std::string &devnode) const {
+        std::vector<__pid_t> pids;
+        for (size_t i = 0; i < cmds.size(); ++i) {
+            __pid_t pid = fork();
+            switch (pid) {
                 case -1:
                     std::fprintf(stderr,
                                  R"(fork failed for devnode %s, job "%s" )"
@@ -245,6 +248,7 @@ struct job {
                     std::string variables   = "DEVNODE=" + devnode;
                     char *environment[]     = {
                         const_cast<char *>(variables.c_str()), nullptr};
+                    setpgid(0, 0);
                     execvpe(command[0], command.get(), environment);
                     std::fprintf(stderr,
                                  R"(exec failed for devnode %s, job "%s" )"
@@ -253,7 +257,13 @@ struct job {
                                  devnode.c_str(), cmds[i].back().c_str(),
                                  std::strerror(errno));
                 } break;
+                default:
+                    pids.push_back(pid);
+                    break;
             }
+        }
+
+        return pids;
     }
 
     std::vector<std::vector<std::string>> cmds;
@@ -274,8 +284,8 @@ struct job {
     std::map<int, std::vector<int>> events;
 };
 
-struct jobs_launcher {
-    jobs_launcher(const std::vector<yaml> &configs) {
+struct jobs_manager {
+    jobs_manager(const std::vector<yaml> &configs) {
         using std::invalid_argument;
 
         for (const auto &config : configs)
@@ -307,26 +317,17 @@ struct jobs_launcher {
             }
     }
 
-    void launch_bare_jobs() const {
+    void launch() const {
         for (const auto &job : jobs)
             if (job.bare)
                 job.launch();
     }
 
-    void launch(udev_device *u, bool initial_scan = false) const {
-        if (u == nullptr)
-            return;
-
+    void launch_for(udev_device *u) {
         const char virtual_devices_directory[] = "/sys/devices/virtual/input/";
         if (strncmp(udev_device_get_syspath(u), virtual_devices_directory,
                     sizeof(virtual_devices_directory) - 1) == 0)
             return;
-
-        if (!initial_scan) {
-            const char *action = udev_device_get_action(u);
-            if (!action || std::strcmp(action, "add"))
-                return;
-        }
 
         const char input_prefix[] = "/dev/input/event";
         const char *devnode       = udev_device_get_devnode(u);
@@ -342,6 +343,10 @@ struct jobs_launcher {
                          devnode, std::strerror(errno));
             return;
         }
+        struct defer1 {
+            int fd;
+            ~defer1() { close(fd); }
+        } defer1{fd};
 
         libevdev *e;
         if (libevdev_new_from_fd(fd, &e) < 0) {
@@ -350,25 +355,96 @@ struct jobs_launcher {
                 R"(failed to create evdev device for %s with error "%s")"
                 "\n",
                 devnode, std::strerror(errno));
-            close(fd);
             return;
         }
-
-        struct defer {
+        struct defer2 {
             libevdev *e;
-            int fd;
-            ~defer() {
-                libevdev_free(e);
-                close(fd);
-            }
-        } free_and_close{e, fd};
+            ~defer2() { libevdev_free(e); }
+        } defer2{e};
 
         for (const auto &job : jobs)
-            if (job.matches(u, e))
-                job.launch_for(devnode);
+            if (job.matches(u, e)) {
+                auto new_pids = job.launch_for(devnode);
+                if (!new_pids.empty())
+                    running_jobs[devnode] = new_pids;
+            }
+    }
+
+    void manage(udev_device *u) {
+        const char virtual_devices_directory[] = "/sys/devices/virtual/input/";
+        if (strncmp(udev_device_get_syspath(u), virtual_devices_directory,
+                    sizeof(virtual_devices_directory) - 1) == 0)
+            return;
+
+        const char input_prefix[] = "/dev/input/event";
+        const char *devnode       = udev_device_get_devnode(u);
+        if (!devnode ||
+            std::strncmp(devnode, input_prefix, sizeof(input_prefix) - 1))
+            return;
+
+        const char *action = udev_device_get_action(u);
+
+        if (!action)
+            return;
+
+        if (!std::strcmp(action, "add")) {
+            int fd = open(devnode, O_RDONLY);
+            if (fd < 0) {
+                std::fprintf(stderr,
+                             R"(failed to open %s with error "%s")"
+                             "\n",
+                             devnode, std::strerror(errno));
+                return;
+            }
+            struct defer1 {
+                int fd;
+                ~defer1() { close(fd); }
+            } defer1{fd};
+
+            libevdev *e;
+            if (libevdev_new_from_fd(fd, &e) < 0) {
+                std::fprintf(
+                    stderr,
+                    R"(failed to create evdev device for %s with error "%s")"
+                    "\n",
+                    devnode, std::strerror(errno));
+                return;
+            }
+            struct defer2 {
+                libevdev *e;
+                ~defer2() { libevdev_free(e); }
+            } defer2{e};
+
+            for (const auto &job : jobs)
+                if (job.matches(u, e)) {
+                    auto pids = running_jobs.find(devnode);
+                    if (pids == running_jobs.end()) {
+                        auto new_pids = job.launch_for(devnode);
+                        if (!new_pids.empty())
+                            running_jobs[devnode] = new_pids;
+                    } else {
+                        for (auto pid : pids->second)
+                            kill(-pid, SIGTERM);
+                        auto new_pids = job.launch_for(devnode);
+                        if (new_pids.empty())
+                            running_jobs.erase(pids);
+                        else
+                            pids->second = new_pids;
+                    }
+                }
+        } else if (!std::strcmp(action, "remove")) {
+            sleep_for(milliseconds(10));
+            auto pids = running_jobs.find(devnode);
+            if (pids != running_jobs.end()) {
+                for (auto pid : pids->second)
+                    kill(-pid, SIGTERM);
+                running_jobs.erase(pids);
+            }
+        }
     }
 
     std::vector<job> jobs;
+    std::map<std::string, std::vector<__pid_t>> running_jobs;
 };
 
 std::vector<yaml> scan_config(const std::string &directory) {
@@ -422,7 +498,7 @@ int main(int argc, char *argv[]) try {
     if (configs.empty())
         return perror("couldn't read any configuration"), EXIT_FAILURE;
 
-    jobs_launcher launcher(configs);
+    jobs_manager jobs(configs);
 
     struct sigaction sa {};
     sa.sa_flags   = SA_NOCLDSTOP;
@@ -430,7 +506,7 @@ int main(int argc, char *argv[]) try {
     if (sigaction(SIGCHLD, &sa, nullptr) == -1)
         return perror("couldn't summon zombie killer"), EXIT_FAILURE;
 
-    launcher.launch_bare_jobs();
+    jobs.launch();
 
     sleep_for(milliseconds(100));
 
@@ -440,14 +516,14 @@ int main(int argc, char *argv[]) try {
     struct defer {
         struct udev *udev;
         ~defer() { udev_unref(udev); }
-    } unref{udev};
+    } defer{udev};
 
     {
         udev_enumerate *enumerate = udev_enumerate_new(udev);
         struct defer {
             udev_enumerate *enumerate;
             ~defer() { udev_enumerate_unref(enumerate); }
-        } unref{enumerate};
+        } defer{enumerate};
         udev_enumerate_add_match_subsystem(enumerate, "input");
         udev_enumerate_scan_devices(enumerate);
         udev_list_entry *dev_list_entry;
@@ -458,8 +534,8 @@ int main(int argc, char *argv[]) try {
                 struct defer {
                     udev_device *u;
                     ~defer() { udev_device_unref(u); }
-                } unref{u};
-                launcher.launch(u, /*initial_scan =*/true);
+                } defer{u};
+                jobs.launch_for(u);
             }
         }
     }
@@ -471,7 +547,7 @@ int main(int argc, char *argv[]) try {
         struct defer {
             udev_monitor *monitor;
             ~defer() { udev_monitor_unref(monitor); }
-        } unref{monitor};
+        } defer{monitor};
 
         udev_monitor_filter_add_match_subsystem_devtype(monitor, "input",
                                                         nullptr);
@@ -488,8 +564,8 @@ int main(int argc, char *argv[]) try {
                     struct defer {
                         udev_device *u;
                         ~defer() { udev_device_unref(u); }
-                    } unref{u};
-                    launcher.launch(u);
+                    } defer{u};
+                    jobs.manage(u);
                 }
             }
         }
