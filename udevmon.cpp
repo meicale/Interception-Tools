@@ -433,7 +433,6 @@ struct jobs_manager {
                     }
                 }
         } else if (!std::strcmp(action, "remove")) {
-            sleep_for(milliseconds(10));
             auto pids = running_jobs.find(devnode);
             if (pids != running_jobs.end()) {
                 for (auto pid : pids->second)
