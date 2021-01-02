@@ -34,6 +34,7 @@ void print_usage(std::FILE *stream, const char *program) {
 int main(int argc, char *argv[]) try {
     char mode = 0;
     std::vector<std::string> muxer_names;
+
     for (int opt; (opt = getopt(argc, argv, "hc:i:o:")) != -1;) {
         switch (opt) {
             case 'h':
