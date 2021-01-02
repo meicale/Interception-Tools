@@ -244,6 +244,19 @@ any device that is already attached or that gets attached. When executing the
 task the `$DEVNODE` environment variable is set to the path of the matching
 device.
 
+To only match devices that produce _all the given events_ instead of just _any
+of the given events_, you do:
+
+```yaml
+- JOB: intercept -g $DEVNODE | magic |  uinput -d $DEVNODE
+  DEVICE:
+    EVENTS:
+      EV_KEY: [[KEY_X, KEY_Y], [KEY_A, KEY_B]]
+```
+
+Which will match if the device responds to either `KEY_X` _and_ `KEY_Y` or
+`KEY_A` _and_ `KEY_B`.
+
 If device specific interception is more desirable, it's simpler to use the
 `LINK` configuration as the device selector, for example:
 
@@ -261,8 +274,9 @@ of two devices to make decisions. That's where the `mux` tool comes at hand:
 
 ```yaml
 - JOB: >
+    KEYBOARD=/dev/input/by-id/usb-SEMITEK_USB-HID_Gaming_Keyboard_SN0000000001-event-kbd;
     mux -c caps2esc;
-    mux -i caps2esc | caps2esc | uinput -d /dev/input/by-id/usb-SEMITEK_USB-HID_Gaming_Keyboard_SN0000000001-event-kbd
+    mux -i caps2esc | caps2esc | uinput -d $KEYBOARD
 - JOB: intercept -g $DEVNODE | mux -o caps2esc
   DEVICE:
     LINK: /dev/input/by-id/usb-SEMITEK_USB-HID_Gaming_Keyboard_SN0000000001-event-kbd
@@ -316,13 +330,16 @@ Where:
 - `LA`: shell replacement, like `[zsh, -c]`, default is `[sh, -c]`.
 - `S` | `LS` : shell command string, or a list of shell command strings.
 - `R`: regular expression string.
-- `LP`: list of all properties (name or code) the device must have.
-- `LE`: list of any events (name or code) of a given type the device can respond.
+- `LP`: list of any _properties or set of properties_ (by name or code), the
+  device can have.
+- `LE`: list of any _events or set of events_ (by name or code), of a given
+  type, that the device can produce.
 - The regular expression grammar supported is [Modified ECMAScript][ecmascript].
 - There can be any number of jobs.
 - Empty event list means the device should respond to whatever event of the
   given event type.
-- Property names and event types and names are taken from [`<linux/input-event-codes.h>`][input-event-codes].
+- Property names and event types and names are taken from
+  [`<linux/input-event-codes.h>`][input-event-codes].
 
 ## Plugin Guidelines
 

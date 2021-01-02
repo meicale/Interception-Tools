@@ -104,15 +104,25 @@ struct job {
 
         if (auto properties = device["PROPERTIES"]) {
             for (const auto &property_node : properties) {
-                auto property_name = property_node.as<string>();
-                int property =
-                    is_int(property_name)
-                        ? stoi(property_name)
-                        : libevdev_property_from_name(property_name.c_str());
-                if (property < 0)
-                    throw invalid_argument("invalid PROPERTY: " +
-                                           property_name);
-                this->properties.push_back(property);
+                vector<string> property_names;
+                if (property_node.IsScalar())
+                    property_names.push_back(property_node.as<string>());
+                else
+                    property_names = property_node.as<vector<string>>();
+
+                vector<int> properties;
+                for (const auto &property_name : property_names) {
+                    int property = is_int(property_name)
+                                       ? stoi(property_name)
+                                       : libevdev_property_from_name(
+                                             property_name.c_str());
+                    if (property < 0)
+                        throw invalid_argument("invalid EVENT CODE: " +
+                                               property_name);
+                    properties.push_back(property);
+                }
+
+                this->properties.push_back(std::move(properties));
             }
         }
         if (auto events = device["EVENTS"]) {
@@ -127,16 +137,27 @@ struct job {
                                            event_type_name);
                 this->events[event_type] = {};
                 for (const auto &event_code_node : event.second) {
-                    auto event_code_name = event_code_node.as<string>();
-                    int event_code =
-                        is_int(event_code_name)
-                            ? stoi(event_code_name)
-                            : libevdev_event_code_from_name(
-                                  event_type, event_code_name.c_str());
-                    if (event_code < 0)
-                        throw invalid_argument("invalid EVENT CODE: " +
-                                               event_code_name);
-                    this->events[event_type].emplace_back(event_code);
+                    vector<string> event_code_names;
+                    if (event_code_node.IsScalar())
+                        event_code_names.push_back(
+                            event_code_node.as<string>());
+                    else
+                        event_code_names = event_code_node.as<vector<string>>();
+
+                    vector<int> event_codes;
+                    for (const auto &event_code_name : event_code_names) {
+                        int event_code =
+                            is_int(event_code_name)
+                                ? stoi(event_code_name)
+                                : libevdev_event_code_from_name(
+                                      event_type, event_code_name.c_str());
+                        if (event_code < 0)
+                            throw invalid_argument("invalid EVENT CODE: " +
+                                                   event_code_name);
+                        event_codes.push_back(event_code);
+                    }
+
+                    this->events[event_type].push_back(std::move(event_codes));
                 }
             }
         }
@@ -147,6 +168,7 @@ struct job {
         using std::all_of;
         using std::any_of;
         using std::vector;
+        using std::none_of;
         using std::to_string;
         using std::regex_match;
 
@@ -181,19 +203,30 @@ struct job {
                          driver_version))
             return false;
 
-        for (int property : properties)
-            if (!libevdev_has_property(e, property))
-                return false;
+        if (!properties.empty() &&
+            none_of(properties.begin(), properties.end(),
+                    [e](const vector<int> &property) {
+                        return all_of(property.begin(), property.end(),
+                                      [e](int property) {
+                                          return libevdev_has_property(
+                                              e, property);
+                                      });
+                    }))
+            return false;
 
         return all_of(
             events.begin(), events.end(),
-            [e](const pair<int, vector<int>> &event) {
+            [e](const pair<int, vector<vector<int>>> &event) {
                 return libevdev_has_event_type(e, event.first) &&
                        (event.second.empty() ||
                         any_of(event.second.begin(), event.second.end(),
-                               [e, &event](int event_code) {
-                                   return libevdev_has_event_code(
-                                       e, event.first, event_code);
+                               [e, &event](const vector<int> &event_codes) {
+                                   return all_of(
+                                       event_codes.begin(), event_codes.end(),
+                                       [e, &event](int event_code) {
+                                           return libevdev_has_event_code(
+                                               e, event.first, event_code);
+                                       });
                                }));
             });
     }
@@ -280,8 +313,8 @@ struct job {
     std::regex  bustype        {".*", std::regex::optimize};
     std::regex  driver_version {".*", std::regex::optimize};
     // clang-format on
-    std::vector<int> properties;
-    std::map<int, std::vector<int>> events;
+    std::vector<std::vector<int>> properties;
+    std::map<int, std::vector<std::vector<int>>> events;
 };
 
 struct jobs_manager {
