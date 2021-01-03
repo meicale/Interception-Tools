@@ -304,6 +304,28 @@ if mouse events reach it from muxing multiple streams, they won't be
 reproduced, hence not duplicating the _observed_ mouse events. [You can also
 grab the mouse, if you want][caps2esc-issue-9-note].
 
+If a device happens to match multiple job descriptions, only the first job that
+matches gets executed. This allows for device specific jobs, while still having
+fallback configurations:
+
+```yaml
+- JOB: intercept -g $DEVNODE | caps2esc -m 2 | uinput -d $DEVNODE
+  DEVICE:
+    LINK: /dev/input/by-id/usb-SEMITEK_USB-HID_Gaming_Keyboard_SN0000000001-event-kbd
+
+- JOB: intercept -g $DEVNODE | caps2esc | uinput -d $DEVNODE
+  DEVICE:
+    EVENTS:
+      EV_KEY: [[KEY_CAPSLOCK, KEY_ESC]]
+    NAME: .*Keyboard
+```
+
+In the above example, if an attached keyboard produces the given link,
+`caps2esc -m 2` will be applied to it, otherwise, `caps2esc` in default mode
+will be applied, if the keyboard has both `KEY_CAPSLOCK` _and_ `KEY_ESC` and a
+device name that ends with “Keyboard” ([to exclude mice that report those
+keys][caps2esc-issue-15-note]).
+
 The “full” YAML based spec is as follows:
 
 ```yaml
@@ -378,6 +400,7 @@ now on user mode, which is the level where the tools run.
 [hideaway]: https://gitlab.com/interception/linux/plugins/hideaway
 [sk61]: https://epomaker.com/products/epomaker-sk61
 [caps2esc-issue-9-note]: https://gitlab.com/interception/linux/plugins/caps2esc/-/issues/9#note_476602097
+[caps2esc-issue-15-note]: https://gitlab.com/interception/linux/plugins/caps2esc/-/issues/15#note_476593423
 [ecmascript]: http://en.cppreference.com/w/cpp/regex/ecmascript
 [input-event-codes]: https://github.com/torvalds/linux/blob/master/include/uapi/linux/input-event-codes.h
 [ev-syn]: https://gitlab.com/interception/linux/tools/-/issues/29#note_474260470

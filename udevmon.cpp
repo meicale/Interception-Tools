@@ -397,9 +397,12 @@ struct jobs_manager {
 
         for (const auto &job : jobs)
             if (job.matches(u, e)) {
-                auto new_pids = job.launch_for(devnode);
-                if (!new_pids.empty())
-                    running_jobs[devnode] = new_pids;
+                auto pids = running_jobs.find(devnode);
+                if (pids == running_jobs.end()) {
+                    auto new_pids = job.launch_for(devnode);
+                    if (!new_pids.empty())
+                        running_jobs[devnode] = new_pids;
+                }
             }
     }
 
@@ -455,14 +458,6 @@ struct jobs_manager {
                         auto new_pids = job.launch_for(devnode);
                         if (!new_pids.empty())
                             running_jobs[devnode] = new_pids;
-                    } else {
-                        for (auto pid : pids->second)
-                            kill(-pid, SIGTERM);
-                        auto new_pids = job.launch_for(devnode);
-                        if (new_pids.empty())
-                            running_jobs.erase(pids);
-                        else
-                            pids->second = new_pids;
                     }
                 }
         } else if (!std::strcmp(action, "remove")) {
