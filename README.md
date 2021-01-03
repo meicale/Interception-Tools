@@ -324,7 +324,9 @@ In the above example, if an attached keyboard produces the given link,
 `caps2esc -m 2` will be applied to it, otherwise, `caps2esc` in default mode
 will be applied, if the keyboard has both `KEY_CAPSLOCK` _and_ `KEY_ESC` and a
 device name that ends with “Keyboard” ([to exclude mice that report those
-keys][caps2esc-issue-15-note]).
+keys][caps2esc-issue-15-note]). Also, note that configuration files found on
+`/etc/interception/udevmon.d` are read first, so you can have device specific
+configurations there, and fallbacks on `/etc/interception/udevmon.yaml`.
 
 The “full” YAML based spec is as follows:
 
