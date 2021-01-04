@@ -312,7 +312,6 @@ fallback configurations:
 - JOB: intercept -g $DEVNODE | caps2esc -m 2 | uinput -d $DEVNODE
   DEVICE:
     LINK: /dev/input/by-id/usb-SEMITEK_USB-HID_Gaming_Keyboard_SN0000000001-event-kbd
-
 - JOB: intercept -g $DEVNODE | caps2esc | uinput -d $DEVNODE
   DEVICE:
     EVENTS:
