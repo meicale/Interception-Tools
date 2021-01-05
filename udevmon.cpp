@@ -2,11 +2,9 @@
 #include <regex>
 #include <cctype>
 #include <cerrno>
-#include <chrono>
 #include <cstdio>
 #include <memory>
 #include <string>
-#include <thread>
 #include <vector>
 #include <cstdlib>
 #include <cstring>
@@ -29,8 +27,6 @@ extern "C" {
 
 #include <yaml-cpp/yaml.h>
 
-using std::chrono::milliseconds;
-using std::this_thread::sleep_for;
 using yaml = std::vector<YAML::Node>;
 
 void print_usage(std::FILE *stream, const char *program) {
@@ -49,6 +45,106 @@ void print_usage(std::FILE *stream, const char *program) {
     // clang-format on
 }
 
+struct cmd {
+    cmd(const YAML::Node &job_node, const YAML::Node &settings_doc = {}) {
+        using std::string;
+        using std::vector;
+        using std::invalid_argument;
+
+        if (job_node.size() != 1)
+            throw invalid_argument("wrong number of fields in job node");
+
+        YAML::Node cmd_node;
+
+        if (job_node["CMD"]) {
+            this->wait = true;
+            cmd_node   = job_node["CMD"];
+        } else if (job_node["JOB"]) {
+            this->wait = false;
+            cmd_node   = job_node["JOB"];
+        } else
+            throw invalid_argument("missing JOB or CMD field in job node");
+
+        vector<string> cmd_pieces = {"sh", "-c"};
+        if (auto shell = settings_doc["SHELL"])
+            cmd_pieces = shell.as<vector<string>>();
+        if (!cmd_node.IsSequence()) {
+            cmd_pieces.push_back(cmd_node.as<string>());
+            this->cmds.push_back(cmd_pieces);
+        } else
+            for (const auto &subcmd_node : cmd_node) {
+                auto pieces = cmd_pieces;
+                pieces.push_back(subcmd_node.as<string>());
+                this->cmds.push_back(pieces);
+            }
+    }
+
+    std::vector<__pid_t> launch() const {
+        std::vector<__pid_t> pids;
+        for (size_t i = 0; i < cmds.size(); ++i) {
+            __pid_t pid = fork();
+            switch (pid) {
+                case -1: {
+                    for (auto pid : pids)
+                        kill(-pid, SIGTERM);
+                    std::string e = "fork failed for \"";
+                    e.append(cmds[i].back());
+                    e.append("\" with error \"");
+                    e.append(std::strerror(errno));
+                    e.append("\"");
+                    throw std::runtime_error(e);
+                }
+                case 0: {
+                    std::unique_ptr<char *[]> command {
+                        new char *[cmds[i].size() + 1]
+                    };
+                    for (size_t j = 0; j < cmds[i].size(); ++j)
+                        command[j] = const_cast<char *>(cmds[i][j].c_str());
+                    command[cmds[i].size()] = nullptr;
+                    char *environment[]     = {nullptr};
+                    setpgid(0, 0);
+                    execvpe(command[0], command.get(), environment);
+                    std::string e = "exec failed for \"";
+                    e.append(cmds[i].back());
+                    e.append("\" with error \"");
+                    e.append(std::strerror(errno));
+                    e.append("\"");
+                    throw std::runtime_error(e);
+                } break;
+                default:
+                    if (wait) {
+                        siginfo_t info;
+                        waitid(P_PID, pid, &info, WEXITED);
+                        if (info.si_code != CLD_EXITED) {
+                            for (auto pid : pids)
+                                kill(-pid, SIGTERM);
+                            std::string e = "command \"";
+                            e.append(cmds[i].back());
+                            e.append("\" terminated abnormally");
+                            throw std::runtime_error(e);
+                        } else if (info.si_status != EXIT_SUCCESS) {
+                            for (auto pid : pids)
+                                kill(-pid, SIGTERM);
+                            std::string e = "command \"";
+                            e.append(cmds[i].back());
+                            e.append("\" exited with error \"");
+                            e.append(std::strerror(info.si_errno));
+                            e.append("\"");
+                            throw std::runtime_error(e);
+                        }
+                    } else
+                        pids.push_back(pid);
+                    break;
+            }
+        }
+
+        return pids;
+    }
+
+    bool wait;
+    std::vector<std::vector<std::string>> cmds;
+};
+
 struct job {
     job(const YAML::Node &job_node, const YAML::Node &settings_doc = {}) {
         using std::regex;
@@ -56,27 +152,30 @@ struct job {
         using std::vector;
         using std::invalid_argument;
 
-        if (auto job = job_node["JOB"]) {
-            vector<string> cmd = {"sh", "-c"};
-            if (auto shell = settings_doc["SHELL"])
-                cmd = shell.as<vector<string>>();
-            if (!job.IsSequence()) {
-                cmd.push_back(job.as<string>());
-                this->cmds.push_back(cmd);
-            } else
-                for (const auto &jobpart : job) {
-                    auto subcmd = cmd;
-                    subcmd.push_back(jobpart.as<string>());
-                    this->cmds.push_back(subcmd);
-                }
-        } else
+        if (job_node.size() != 2)
+            throw invalid_argument("wrong number of fields in job node");
+
+        if (!job_node["JOB"])
             throw invalid_argument("missing JOB field in job node");
 
+        if (!job_node["DEVICE"])
+            throw invalid_argument("missing DEVICE field in job node");
+
+        auto cmd_node             = job_node["JOB"];
+        vector<string> cmd_pieces = {"sh", "-c"};
+        if (auto shell = settings_doc["SHELL"])
+            cmd_pieces = shell.as<vector<string>>();
+        if (!cmd_node.IsSequence()) {
+            cmd_pieces.push_back(cmd_node.as<string>());
+            this->cmds.push_back(cmd_pieces);
+        } else
+            for (const auto &subcmd_node : cmd_node) {
+                auto pieces = cmd_pieces;
+                pieces.push_back(subcmd_node.as<string>());
+                this->cmds.push_back(pieces);
+            }
+
         auto device = job_node["DEVICE"];
-        if (!device) {
-            this->bare = true;
-            return;
-        }
 
         if (auto link = device["LINK"]) {
             this->has_link = true;
@@ -172,9 +271,6 @@ struct job {
         using std::to_string;
         using std::regex_match;
 
-        if (bare)
-            return false;
-
         if (has_link) {
             udev_list_entry *dev_list_entry;
             udev_list_entry_foreach(dev_list_entry,
@@ -231,33 +327,6 @@ struct job {
             });
     }
 
-    void launch() const {
-        for (size_t i = 0; i < cmds.size(); ++i)
-            switch (fork()) {
-                case -1:
-                    std::fprintf(stderr,
-                                 R"(fork failed for job "%s" with error "%s")"
-                                 "\n",
-                                 cmds[i].back().c_str(), std::strerror(errno));
-                    break;
-                case 0: {
-                    std::unique_ptr<char *[]> command {
-                        new char *[cmds[i].size() + 1]
-                    };
-                    for (size_t j = 0; j < cmds[i].size(); ++j)
-                        command[j] = const_cast<char *>(cmds[i][j].c_str());
-                    command[cmds[i].size()] = nullptr;
-                    char *environment[]     = {nullptr};
-                    setpgid(0, 0);
-                    execvpe(command[0], command.get(), environment);
-                    std::fprintf(stderr,
-                                 R"(exec failed for job "%s" with error "%s")"
-                                 "\n",
-                                 cmds[i].back().c_str(), std::strerror(errno));
-                } break;
-            }
-    }
-
     std::vector<__pid_t> launch_for(const std::string &devnode) const {
         std::vector<__pid_t> pids;
         for (size_t i = 0; i < cmds.size(); ++i) {
@@ -283,12 +352,14 @@ struct job {
                         const_cast<char *>(variables.c_str()), nullptr};
                     setpgid(0, 0);
                     execvpe(command[0], command.get(), environment);
-                    std::fprintf(stderr,
-                                 R"(exec failed for devnode %s, job "%s" )"
-                                 R"(with error "%s")"
-                                 "\n",
-                                 devnode.c_str(), cmds[i].back().c_str(),
-                                 std::strerror(errno));
+                    std::string e = "exec failed for devnode ";
+                    e.append(devnode);
+                    e.append(", job \"");
+                    e.append(cmds[i].back());
+                    e.append("\" with error \"");
+                    e.append(std::strerror(errno));
+                    e.append("\"");
+                    throw std::runtime_error(e);
                 } break;
                 default:
                     pids.push_back(pid);
@@ -302,7 +373,6 @@ struct job {
     std::vector<std::vector<std::string>> cmds;
 
     // clang-format off
-    bool        bare           {false};
     bool        has_link       {false};
     std::regex  link;
     std::regex  name           {".*", std::regex::optimize};
@@ -336,12 +406,16 @@ struct jobs_manager {
                         throw invalid_argument(
                             "configuration must contain one job node's "
                             "sequence document");
+                    size_t settings, sequence;
                     if (config[0].IsSequence())
-                        for (const auto &job_node : config[0])
-                            jobs.emplace_back(job_node, config[1]);
+                        settings = 1, sequence = 0;
                     else
-                        for (const auto &job_node : config[1])
-                            jobs.emplace_back(job_node, config[0]);
+                        settings = 0, sequence = 1;
+                    for (const auto &job_node : config[sequence])
+                        if (job_node["JOB"] && job_node.size() == 2)
+                            jobs.emplace_back(job_node, config[settings]);
+                        else
+                            cmds.emplace_back(job_node, config[settings]);
                     break;
                 default:
                     throw invalid_argument(
@@ -350,10 +424,10 @@ struct jobs_manager {
             }
     }
 
-    void launch() const {
-        for (const auto &job : jobs)
-            if (job.bare)
-                job.launch();
+    void launch() {
+        for (const auto &cmd : cmds)
+            for (auto pid : cmd.launch())
+                running_cmds.push_back(pid);
     }
 
     void launch_for(udev_device *u) {
@@ -403,6 +477,7 @@ struct jobs_manager {
                     if (!new_pids.empty())
                         running_jobs[devnode] = new_pids;
                 }
+                break;
             }
     }
 
@@ -459,6 +534,7 @@ struct jobs_manager {
                         if (!new_pids.empty())
                             running_jobs[devnode] = new_pids;
                     }
+                    break;
                 }
         } else if (!std::strcmp(action, "remove")) {
             auto pids = running_jobs.find(devnode);
@@ -470,7 +546,17 @@ struct jobs_manager {
         }
     }
 
+    ~jobs_manager() {
+        for (auto pid : running_cmds)
+            kill(-pid, SIGTERM);
+        for (const auto &running_job : running_jobs)
+            for (auto pid : running_job.second)
+                kill(-pid, SIGTERM);
+    }
+
+    std::vector<cmd> cmds;
     std::vector<job> jobs;
+    std::vector<__pid_t> running_cmds;
     std::map<std::string, std::vector<__pid_t>> running_jobs;
 };
 
@@ -533,8 +619,6 @@ int main(int argc, char *argv[]) try {
         return perror("couldn't summon zombie killer"), EXIT_FAILURE;
 
     jobs.launch();
-
-    sleep_for(milliseconds(100));
 
     udev *udev = udev_new();
     if (!udev)
