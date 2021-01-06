@@ -34,7 +34,7 @@ void print_usage(std::FILE *stream, const char *program) {
     std::fprintf(stream,
                  "udevmon - monitor input devices for launching tasks\n"
                  "\n"
-                 "usage: %s [-h] [-c configuration.yaml]\n"
+                 "usage: %s [-h | -c configuration.yaml]\n"
                  "\n"
                  "options:\n"
                  "    -h                    show this message and exit\n"

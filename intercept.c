@@ -11,7 +11,7 @@ void print_usage(FILE *stream, const char *program) {
     fprintf(stream,
             "intercept - redirect device input events to stdout\n"
             "\n"
-            "usage: %s [-h] [-g] devnode\n"
+            "usage: %s [-h | [-g] devnode]\n"
             "\n"
             "options:\n"
             "    -h        show this message and exit\n"

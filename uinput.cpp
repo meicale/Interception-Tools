@@ -157,13 +157,15 @@ void print_usage(std::FILE *stream, const char *program) {
     std::fprintf(stream,
                  "uinput - redirect device input events from stdin to virtual device\n"
                  "\n"
-                 "usage: %s [-h] [-p] [-c device.yaml]... [-d devnode]...\n"
+                 "usage: %s [-h | [-p] [-c device.yaml] [-d devnode]]\n"
                  "\n"
                  "options:\n"
                  "    -h                show this message and exit\n"
                  "    -p                show resulting YAML device description merge and exit\n"
-                 "    -c device.yaml    merge YAML device description to resulting virtual device\n"
-                 "    -d devnode        merge reference device description to resulting virtual device\n",
+                 "    -c device.yaml    merge YAML device description to resulting virtual\n"
+                 "                      device (repeatable)\n"
+                 "    -d devnode        merge reference device description to resulting virtual\n"
+                 "                      device (repeatable)\n",
                  program);
     // clang-format on
 }
