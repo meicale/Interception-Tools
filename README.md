@@ -11,7 +11,7 @@ events of `evdev` devices:
 ```
 udevmon - monitor input devices for launching tasks
 
-usage: udevmon [-h] [-c configuration.yaml]
+usage: udevmon [-h | -c configuration.yaml]
 
 options:
     -h                    show this message and exit
@@ -25,7 +25,7 @@ options:
 ```
 intercept - redirect device input events to stdout
 
-usage: intercept [-h] [-g] devnode
+usage: intercept [-h | [-g] devnode]
 
 options:
     -h        show this message and exit
@@ -38,25 +38,29 @@ options:
 ```
 uinput - redirect device input events from stdin to virtual device
 
-usage: uinput [-h] [-p] [-c device.yaml]... [-d devnode]...
+usage: uinput [-h | [-p] [-c device.yaml] [-d devnode]]
 
 options:
     -h                show this message and exit
     -p                show resulting YAML device description merge and exit
-    -c device.yaml    merge YAML device description to resulting virtual device
-    -d devnode        merge reference device description to resulting virtual device
+    -c device.yaml    merge YAML device description to resulting virtual
+                      device (repeatable)
+    -d devnode        merge reference device description to resulting virtual
+                      device (repeatable)
 ```
 
 ### mux
 ```
 mux - mux streams of input events
 
-usage: mux [-h] [-c name | -i name | -o name]
+usage: mux [-h | [-s size] -c name | [-i name] [-o name]]
 
 options:
     -h        show this message and exit
+    -s size   muxer's queue size (default: 100)
     -c name   name of muxer to create (repeatable)
-    -i name   name of muxer to read input from
+    -i name   name of muxer to read input from or switch on
+              (repeatable in switch mode)
     -o name   name of muxer to write output to (repeatable)
 ```
 
@@ -181,10 +185,9 @@ this trivial program (let's call it `x2y`):
 #include <linux/input.h>
 
 int main(void) {
-    struct input_event event;
-
     setbuf(stdin, NULL), setbuf(stdout, NULL);
 
+    struct input_event event;
     while (fread(&event, sizeof(event), 1, stdin) == 1) {
         if (event.type == EV_KEY && event.code == KEY_X)
             event.code = KEY_Y;
@@ -209,7 +212,7 @@ or as
 and notice how the composition order `x2y | y2z` vs `y2z | x2y` is relevant in
 this case. The first most probably doesn't produce the desired composition
 because one affects the other and the final behavior actually becomes `x2z` and
-`y2z`, which doesn't happen in the later case.
+`y2z`, which doesn't happen in the later composition.
 
 **The `uinput` tool has another purpose besides emulation which is just to print
 a device's description in YAML format**. `uinput -p -d /dev/input/by-id/my-kbd`
@@ -221,13 +224,14 @@ characteristics, for example,
 uinput -p -d /dev/input/by-id/my-kbd -d /dev/input/by-id/my-mouse -c my-extra.yaml
 ```
 
-merges `my-kbd`, `my-mouse` and `my-extra.yaml` into a single YAML output. The
+merges `my-kbd`, `my-mouse` and `my-extra.yaml` into a single YAML output (the
 characteristics that aren't lists are “merged” by overriding the previous when
-they are present on both inputs. This allows creating hybrid virtual devices
-that act as both keyboard and mouse, for example.
+they are present on both inputs). This allows creating hybrid virtual devices
+that, for example, act as both keyboard and mouse (see caveats section on
+hybrid devices).
 
 Explicitly calling `intercept` and `uinput` on specific devices can be
-cumbersome, that's where `udevmon` enters the scene. `udevmon` accepts a YAML
+cumbersome, that's where `udevmon` helps. `udevmon` accepts a YAML
 configuration with a list of _jobs_ (`sh` commands by default) to be executed
 in case the device matches a given description. For example:
 
@@ -240,9 +244,8 @@ in case the device matches a given description. For example:
 
 Calling `udevmon` with this configuration sets it to launch the given command
 for whatever device that responds to `KEY_X` or `KEY_Y`. It will monitor for
-any device that is already attached or that gets attached. When executing the
-task the `$DEVNODE` environment variable is set to the path of the matching
-device.
+any device that is already attached or that gets attached. The `$DEVNODE`
+environment variable is set to the path of the matching device.
 
 To only match devices that produce _all the given events_ instead of just _any
 of the given events_, you do:
@@ -251,11 +254,11 @@ of the given events_, you do:
 - JOB: intercept -g $DEVNODE | magic |  uinput -d $DEVNODE
   DEVICE:
     EVENTS:
-      EV_KEY: [[KEY_X, KEY_Y], [KEY_A, KEY_B]]
+      EV_KEY: [KEY_A, KEY_B, [KEY_X, KEY_Y]]
 ```
 
-Which will match if the device responds to either `KEY_X` _and_ `KEY_Y` or
-`KEY_A` _and_ `KEY_B`.
+Which will match if the device responds to either `KEY_A`, `KEY_B`, `KEY_X`
+_and_ `KEY_Y`.
 
 If device specific interception is more desirable, it's simpler to use the
 `LINK` configuration as the device selector, for example:
@@ -273,10 +276,8 @@ A more involved configuration may need to combine (or just observe) the input
 of two devices to make decisions. That's where the `mux` tool comes at hand:
 
 ```yaml
-- JOB: >
-    KEYBOARD=/dev/input/by-id/usb-SEMITEK_USB-HID_Gaming_Keyboard_SN0000000001-event-kbd;
-    mux -c caps2esc;
-    mux -i caps2esc | caps2esc | uinput -d $KEYBOARD
+- CMD: mux -c caps2esc
+- JOB: mux -i caps2esc | caps2esc | uinput -c /etc/interception/gaming-keyboard.yaml
 - JOB: intercept -g $DEVNODE | mux -o caps2esc
   DEVICE:
     LINK: /dev/input/by-id/usb-SEMITEK_USB-HID_Gaming_Keyboard_SN0000000001-event-kbd
@@ -285,24 +286,25 @@ of two devices to make decisions. That's where the `mux` tool comes at hand:
     LINK: /dev/input/by-id/usb-Logitech_USB_Receiver-if02-event-mouse
 ```
 
-The `mux` tool serves to combine input streams. A _muxer_ first needs to be
-created with a name in a _standalone job_ not associated with any device (it's
-then just a command executed when `udevmon` starts). Then this muxer can be
-used for reading and writing from multiple device streams.
+The `mux` tool serves to combine multiple pipelines into one. A _muxer_ first
+needs to be created with a name in a `CMD` (differently from `JOB`s, `CMD`s are
+executed sequentially when the service starts and are waited for successful
+termination). The muxer can then be used from multiple pipelines as an output
+or as the input of a given pipeline. After the muxer creation, a _standalone
+job_ not associated with any device (which makes it just a command executed
+when `udevmon` starts, but not waited for) is launched to consume the muxer and
+pass what arrives from it to `caps2esc` and, finally, to the virtual device
+created from `gaming-keyboard.yaml` (see caveats section on device links).
 
 In the example above, when the keyboard is connected, it's grabbed and its
-input events are sent to the `caps2esc` muxer that was initially created
-alongside the muxer reader pipeline (which doesn't break when devices
-disconnect). The cloned device will receive the input through the muxer, which
-itself not only receives input from the keyboard, but also from _observed_
-input (not grabbed) from mouse. The buttons of the mouse generate `EV_KEY`
-events, so `caps2esc` will accept them, making “Caps Lock + Click” work as
-“Control + Click”.
+input events are sent to the “caps2esc” muxer that was initially created.
+_Observed_ input (not grabbed) from mouse is also sent to the same muxer. The
+buttons of the mouse generate `EV_KEY` events, so `caps2esc` will accept them,
+making “Caps Lock + Click” work as “Control + Click”.
 
-As in this case the final target cloned device clones a keyboard, not a mouse,
-if mouse events reach it from muxing multiple streams, they won't be
-reproduced, hence not duplicating the _observed_ mouse events. [You can also
-grab the mouse, if you want][caps2esc-issue-9-note].
+As in this case the final target cloned device clones the keyboard, not a
+mouse, if mouse events reach it from muxing multiple pipelines, they won't be
+reproduced, hence not duplicating the _observed_ mouse events.
 
 If a device happens to match multiple job descriptions, only the first job that
 matches gets executed. This allows for device specific jobs, while still having
@@ -316,22 +318,97 @@ fallback configurations:
   DEVICE:
     EVENTS:
       EV_KEY: [[KEY_CAPSLOCK, KEY_ESC]]
-    NAME: .*Keyboard
+    LINK: .*-event-kbd
 ```
 
 In the above example, if an attached keyboard produces the given link,
 `caps2esc -m 2` will be applied to it, otherwise, `caps2esc` in default mode
-will be applied, if the keyboard has both `KEY_CAPSLOCK` _and_ `KEY_ESC` and a
-device name that ends with “Keyboard” ([to exclude mice that report those
+will be applied (_if_ the keyboard has both `KEY_CAPSLOCK` _and_ `KEY_ESC` and a
+device link that ends with `-event-kbd`, [to exclude mice that report those
 keys][caps2esc-issue-15-note]). Also, note that configuration files found on
 `/etc/interception/udevmon.d/` are read first, so you can have device specific
 configurations there, and fallbacks on `/etc/interception/udevmon.yaml`.
+
+Besides combining pipelines, the `mux` tool can duplicate them (multiple `-o`s)
+and even act as a _switch_, based on activity in other pipelines (`-i` and `-o`
+intermixed). Which brings us to our lasting, _slightly complex_, use case:
+
+Lets imagine the following setup:
+
+- You want to grab keyboards (here on referred as `K`) and mice (`M`)  and
+  combine input coming for these two groups into `KM`, to apply multi device
+  chording
+- You have a generic filter (`caps2esc`) you want to apply to combined
+  keyboard/mouse input
+- But when you're using some specific keyboards (`X`), you want the combined
+  input (`XM`) to go through a different filter (`caps2esc -m 2`)
+
+Voilà:
+
+```yaml
+- CMD: mux -c K -c k -c X -c x -c M -c KM -c XM -c H
+- JOB:
+    - mux -i K | mux -o k -o KM
+    - mux -i X | mux -o x -o XM
+    - mux -i M | mux -o KM -i k -o KM -i x -o XM
+    - mux -i KM | caps2esc | mux -o H
+    - mux -i XM | caps2esc -m 2 | mux -o H
+    - mux -i H | uinput -c /etc/interception/hybrid.yaml
+intercept -g $DEVNODE | mux -o X
+  DEVICE:
+    LINK: /dev/input/by-id/usb-SEMITEK_USB-HID_Gaming_Keyboard_SN0000000001-event-kbd
+- JOB: intercept -g $DEVNODE | mux -o M
+  DEVICE:
+    EVENTS:
+      EV_KEY: [BTN_LEFT, BTN_TOUCH]
+- JOB: intercept -g $DEVNODE | mux -o K
+  DEVICE:
+    EVENTS:
+      EV_KEY: [[KEY_CAPSLOCK, KEY_ESC]]
+    NAME: .*[Kk]eyboard.*
+    LINK: .*-event-kbd
+```
+
+Don't be afraid as it's pretty simple to break it down.
+
+First, as can be seen, at the bottom we have device detection for three device
+groups, as modeled before, and each group redirect their input to appropriately
+named muxers, `K`, `M` and `X`.
+
+The `mux -i K | mux -o k -o KM` (sub) job consumes the input coming from group
+`K` and duplicates into `k` and `KM`. `KM`, as explained before, is the point
+where input coming from either `K` or `M` will go through. The lowercase `k`
+one here is a special purpose endpoint to be consumed solely for checking if
+there's input activity in the `K` group.
+
+The same explanation applies for `mux -i X | mux -o x -o XM`.
+
+On `mux -i M | mux -o KM -i k -o KM -i x -o XM` we get to the core of the
+design. Here `M` is consumed and gets redirected to either `KM`, if there's
+activity in `k` (`-i k -o KM`), or `XM`, if there's activity in `x` (`-i x -o
+XM`). The first `-o KM` makes `KM` the default route for input coming from `M`
+(in case no activity ever happens in `k` or `x`).
+
+In the end we only have `KM` and `XM` to consume input from, as we have that
+input from `K` goes to `KM`, input from `X` goes to `XM`, and input from `M`
+goes either to `KM` or `XM`.
+
+For `KM` then we apply `caps2esc`, but for `XM` we apply `caps2esc -m 2`. And
+regardless the route input goes through, we send it to the final `H` endpoint,
+which gets consumed by a hybrid virtual device.
+
+As a final note on the `mux` tool in switch mode, `mux -i e | mux -o o -i i`
+would redirect `e` to `o` by default, but once there's activity in `i`, `e`
+redirected to nowhere. And if you have `mux -i e | mux -i i -o o`, as there
+isn't any default output, `e` gets redirected to `o` only after first detected
+activity in `i`.
 
 The “full” YAML based spec is as follows:
 
 ```yaml
 SHELL:              LA
 ---
+- CMD:              S | LS
 - JOB:              S | LS
   DEVICE:
     LINK:           R
@@ -367,6 +444,7 @@ Where:
 ## Plugin Guidelines
 
 ### Correct synthesization of event sequences
+
 A plugin that's going to synthesize event sequences programmatically (not the
 case for simple key swapping, like `x2y` above), for keyboard at least, is
 required to provide `EV_SYN` events and a short delay (to have different
@@ -377,11 +455,57 @@ while generating events (with `evtest` for example) for mimicking them with
 success.
 
 ### Correct process priority
+
 Always use a high process priority (low _niceness_ level, `udevmon.service`
 uses `-20`) when executing tools that manipulate input, otherwise you may get
 [unwanted effects][niceness]. Without _Interception Tools_, your input is
 treated with high priority at kernel level, and you should try to resemble that
 now on user mode, which is the level where the tools run.
+
+## Caveats
+
+### Hybrid device configurations
+
+_Note that hybrid devices may not always work_.
+
+For example, on my PC, merging my mouse and keyboard into a single device does
+create a working hybrid device that can respond for all their events, but on an
+old laptop, merging the built-in i8042 keyboard and i8042 touchpad created a
+non-working hybrid that can only respond for the touchpad's events (it seems
+`EV_ABS` and keyboard `EV_KEY`s didn't work together in this machine). To fix
+that I stored the configurations in different files, and checked they didn't
+respond for any identical events. Then I used these two as virtual output for
+the same muxed stream of events, but given that the virtual devices don't
+respond for the same events, these don't get duplicated:
+
+```yaml
+- CMD: mux -c caps2esc -c keyboard -c mouse
+- JOB:
+    - mux -i caps2esc | caps2esc | mux -o keyboard -o mouse
+    - mux -i keyboard | uinput -c /etc/interception/keyboard.yaml
+    - mux -i mouse | uinput -c /etc/interception/mouse.yaml
+- JOB: intercept -g $DEVNODE | mux -o caps2esc
+  DEVICE:
+    NAME: AT Translated Set 2 keyboard
+- JOB: intercept -g $DEVNODE | mux -o caps2esc
+  DEVICE:
+    NAME: ETPS/2 Elantech Touchpad
+```
+
+### Device links
+
+Depending on the system, device links (`by-id`, `by-path`, etc) may not exist
+at all, or not be readily available when the machine boots, which may make it
+unreliable to refer to them on _standalone jobs_ which execute when `udevmon`
+starts on boot. It's safe to refer to them on device jobs, as they only start
+when the link actually becomes present.
+
+Hence, on standalone jobs it's generally better practice to refer to previously
+stored YAML device configurations instead.
+
+On a machine that produce links, referring to them on standalone jobs may or
+may not work on boot. You may verify that by rebooting checking whether
+`udevmon` give errors on boot or not.
 
 ## Software Alternatives
 
@@ -400,7 +524,6 @@ now on user mode, which is the level where the tools run.
 [dual-function-keys]: https://gitlab.com/interception/linux/plugins/dual-function-keys
 [hideaway]: https://gitlab.com/interception/linux/plugins/hideaway
 [sk61]: https://epomaker.com/products/epomaker-sk61
-[caps2esc-issue-9-note]: https://gitlab.com/interception/linux/plugins/caps2esc/-/issues/9#note_476602097
 [caps2esc-issue-15-note]: https://gitlab.com/interception/linux/plugins/caps2esc/-/issues/15#note_476593423
 [ecmascript]: http://en.cppreference.com/w/cpp/regex/ecmascript
 [input-event-codes]: https://github.com/torvalds/linux/blob/master/include/uapi/linux/input-event-codes.h
