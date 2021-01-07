@@ -504,7 +504,7 @@ Hence, on standalone jobs it's generally better practice to refer to previously
 stored YAML device configurations instead.
 
 On a machine that produce links, referring to them on standalone jobs may or
-may not work on boot. You may verify that by rebooting checking whether
+may not work on boot. You may verify that by rebooting and checking whether
 `udevmon` give errors on boot or not.
 
 ## Software Alternatives
