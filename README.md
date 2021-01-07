@@ -398,10 +398,15 @@ regardless the route input goes through, we send it to the final `H` endpoint,
 which gets consumed by a hybrid virtual device.
 
 As a final note on the `mux` tool in switch mode, `mux -i e | mux -o o -i i`
-would redirect `e` to `o` by default, but once there's activity in `i`, `e`
-is redirected to nowhere. And if you have `mux -i e | mux -i i -o o`, as there
+would redirect `e` to `o` by default, but once there's activity in `i`, `e` is
+redirected to nowhere. And if you have `mux -i e | mux -i i -o o`, as there
 isn't any default output, `e` gets redirected to `o` only after first detected
 activity in `i`.
+
+Besides that, you can have `-i x -i y -i etc -o z` to redirect to `z` out of
+activity either from `x`, `y` or `etc` and you can have `-i x -o y -o z -o etc`
+to redirect to `y`, `z` and `etc` out of `x` activity. Both aspects can be
+combined in `-i w -i x -o y -o z`.
 
 The “full” YAML based spec is as follows:
 
