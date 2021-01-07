@@ -335,7 +335,7 @@ intermixed). Which brings us to our lasting, _slightly complex_, use case:
 
 Lets imagine the following setup:
 
-- You want to grab keyboards (here on referred as `K`) and mice (`M`)  and
+- You want to grab keyboards (here after referred as `K`) and mice (`M`)  and
   combine input coming for these two groups into `KM`, to apply multi device
   chording
 - You have a generic filter (`caps2esc`) you want to apply to combined
