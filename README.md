@@ -372,8 +372,8 @@ Voilà:
 Don't be afraid as it's pretty simple to break it down.
 
 First, as can be seen, at the bottom we have device detection for three device
-groups, as modeled before, and each group redirect their input to appropriately
-named muxers, `K`, `M` and `X`.
+groups (as modeled previously) and each group redirect their input to
+appropriately named muxers, `K`, `M` and `X`.
 
 The `mux -i K | mux -o k -o KM` (sub) job consumes the input coming from group
 `K` and duplicates into `k` and `KM`. `KM`, as explained before, is the point
@@ -394,8 +394,8 @@ input from `K` goes to `KM`, input from `X` goes to `XM`, and input from `M`
 goes either to `KM` or `XM`.
 
 For `KM` then we apply `caps2esc`, but for `XM` we apply `caps2esc -m 2`. And
-regardless the route input goes through, we send it to the final `H` endpoint,
-which gets consumed by a hybrid virtual device.
+regardless the route that input goes through, we send it to the final `H`
+endpoint, which gets consumed by a hybrid virtual device.
 
 As a final note on the `mux` tool in switch mode, `mux -i e | mux -o o -i i`
 would redirect `e` to `o` by default, but once there's activity in `i`, `e` is
