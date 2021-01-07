@@ -441,7 +441,7 @@ Where:
   type, that the device can produce.
 - The regular expression grammar supported is [Modified ECMAScript][ecmascript].
 - There can be any number of jobs.
-- Empty event list means the device should respond to whatever event of the
+- An empty event list means the device should respond to whatever event of the
   given event type.
 - Property names and event types and names are taken from
   [`<linux/input-event-codes.h>`][input-event-codes].
