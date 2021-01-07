@@ -399,7 +399,7 @@ which gets consumed by a hybrid virtual device.
 
 As a final note on the `mux` tool in switch mode, `mux -i e | mux -o o -i i`
 would redirect `e` to `o` by default, but once there's activity in `i`, `e`
-redirected to nowhere. And if you have `mux -i e | mux -i i -o o`, as there
+is redirected to nowhere. And if you have `mux -i e | mux -i i -o o`, as there
 isn't any default output, `e` gets redirected to `o` only after first detected
 activity in `i`.
 
