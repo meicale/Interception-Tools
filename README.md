@@ -354,7 +354,7 @@ Voilà:
     - mux -i KM | caps2esc | mux -o H
     - mux -i XM | caps2esc -m 2 | mux -o H
     - mux -i H | uinput -c /etc/interception/hybrid.yaml
-intercept -g $DEVNODE | mux -o X
+- JOB: intercept -g $DEVNODE | mux -o X
   DEVICE:
     LINK: /dev/input/by-id/usb-SEMITEK_USB-HID_Gaming_Keyboard_SN0000000001-event-kbd
 - JOB: intercept -g $DEVNODE | mux -o M
