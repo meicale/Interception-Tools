@@ -83,6 +83,11 @@ options:
 - [hideaway][]
 - [dual-function-keys][]
 
+## Community Plugins
+
+- [chorded_keymap][]
+- [interception-vimproved][]
+
 ## Execution
 
 The following daemonized sample execution increases `udevmon` priority (since
@@ -526,8 +531,10 @@ may not work on boot. You may verify that by rebooting and checking whether
 [interprocess]: https://www.boost.org/doc/libs/release/libs/interprocess
 [caps2esc]: https://gitlab.com/interception/linux/plugins/caps2esc
 [space2meta]: https://gitlab.com/interception/linux/plugins/space2meta
-[dual-function-keys]: https://gitlab.com/interception/linux/plugins/dual-function-keys
 [hideaway]: https://gitlab.com/interception/linux/plugins/hideaway
+[dual-function-keys]: https://gitlab.com/interception/linux/plugins/dual-function-keys
+[chorded_keymap]: https://gitlab.com/wsha/chorded_keymap
+[interception-vimproved]: https://github.com/maricn/interception-vimproved
 [sk61]: https://epomaker.com/products/epomaker-sk61
 [caps2esc-issue-15-note]: https://gitlab.com/interception/linux/plugins/caps2esc/-/issues/15#note_476593423
 [ecmascript]: http://en.cppreference.com/w/cpp/regex/ecmascript
