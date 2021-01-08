@@ -115,7 +115,7 @@ $ sudo dnf install interception-tools
 Or if building from sources, these are the dependencies:
 
 ```
-$ dnf install cmake yaml-cpp-devel libevdev-devel systemd-devel
+$ dnf install cmake libevdev-devel systemd-devel yaml-cpp-devel boost-devel
 ```
 
 ### Ubuntu
