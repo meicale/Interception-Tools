@@ -184,24 +184,24 @@ int main(int argc, char *argv[]) try {
                         new message_queue(open_only, name.c_str()));
 
                 std::thread(
-                    [&current_muxer](std::string muxer_name, size_t id) {
+                    [&current_muxer](std::unique_ptr<message_queue> muxer,
+                                     size_t id) {
                         try {
-                            message_queue muxer(open_only, muxer_name.c_str());
-                            current_muxer = id;
-
                             input_event input;
                             unsigned int priority;
                             message_queue::size_type size;
                             for (;;) {
-                                muxer.receive(&input, sizeof input, size,
-                                              priority);
+                                muxer->receive(&input, sizeof input, size,
+                                               priority);
                                 if (size == sizeof input)
                                     current_muxer = id;
                             }
                         } catch (...) {
                         }
                     },
-                    muxer_name.first, ++id)
+                    std::unique_ptr<message_queue>(
+                        new message_queue(open_only, muxer_name.first.c_str())),
+                    ++id)
                     .detach();
             }
 
