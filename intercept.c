@@ -50,8 +50,6 @@ int main(int argc, char *argv[]) {
     if (libevdev_new_from_fd(fd, &dev) < 0)
         goto teardown_fd;
 
-    sleep(1);
-
     if (grab && libevdev_grab(dev, LIBEVDEV_GRAB) < 0)
         goto teardown_dev;
 
