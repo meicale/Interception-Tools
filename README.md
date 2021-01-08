@@ -221,7 +221,7 @@ because one affects the other and the final behavior actually becomes `x2z` and
 
 **The `uinput` tool has another purpose besides emulation which is just to print
 a device's description in YAML format**. `uinput -p -d /dev/input/by-id/my-kbd`
-prints `my-kbd` characteristics in YAML, which itself can be feed back to
+prints `my-kbd` characteristics in YAML, which itself can be fed back to
 `uinput` as `uinput -c my-kbd.yaml`. It can also merge device and YAML
 characteristics, for example,
 
