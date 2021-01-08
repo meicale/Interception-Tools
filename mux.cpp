@@ -165,7 +165,6 @@ int main(int argc, char *argv[]) try {
 
         case SWITCH_MODE: {
             std::vector<std::vector<std::unique_ptr<message_queue>>> muxers;
-
             std::atomic<size_t> current_muxer{0};
 
             muxers.push_back({});
@@ -206,6 +205,7 @@ int main(int argc, char *argv[]) try {
             }
 
             std::setbuf(stdin, nullptr);
+
             input_event input;
             for (;;) {
                 if (std::fread(&input, sizeof input, 1, stdin) == 1) {
