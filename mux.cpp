@@ -37,6 +37,8 @@ void print_usage(std::FILE *stream, const char *program) {
     // clang-format on
 }
 
+std::atomic<size_t> current_muxer{0};
+
 int main(int argc, char *argv[]) try {
     enum {
         NO_MODE,
@@ -165,7 +167,6 @@ int main(int argc, char *argv[]) try {
 
         case SWITCH_MODE: {
             std::vector<std::vector<std::unique_ptr<message_queue>>> muxers;
-            std::atomic<size_t> current_muxer{0};
 
             muxers.push_back({});
             for (const auto &muxer_name : muxer_names[""])
@@ -183,8 +184,7 @@ int main(int argc, char *argv[]) try {
                         new message_queue(open_only, name.c_str()));
 
                 std::thread(
-                    [&current_muxer](std::unique_ptr<message_queue> muxer,
-                                     size_t id) {
+                    [](std::unique_ptr<message_queue> muxer, size_t id) {
                         try {
                             input_event input;
                             unsigned int priority;
