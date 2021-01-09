@@ -464,6 +464,8 @@ behave well. As a general guideline, one should explore how real devices behave
 while generating events (with `evtest` for example) for mimicking them with
 success.
 
+## Caveats
+
 ### Correct process priority
 
 Always use a high process priority (low _niceness_ level, `udevmon.service`
@@ -471,8 +473,6 @@ uses `-20`) when executing tools that manipulate input, otherwise you may get
 [unwanted effects][niceness]. Without _Interception Tools_, your input is
 treated with high priority at kernel level, and you should try to resemble that
 now on user mode, which is the level where the tools run.
-
-## Caveats
 
 ### Hybrid device configurations
 
