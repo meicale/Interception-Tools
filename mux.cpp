@@ -178,7 +178,7 @@ int main(int argc, char *argv[]) try {
                 if (muxer_name.first.empty())
                     continue;
 
-                muxers.push_back({});
+                muxers.emplace_back();
                 for (const auto &name : muxer_name.second)
                     muxers.back().emplace_back(
                         new message_queue(open_only, name.c_str()));
