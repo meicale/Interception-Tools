@@ -168,7 +168,7 @@ int main(int argc, char *argv[]) try {
         case SWITCH_MODE: {
             std::vector<std::vector<std::unique_ptr<message_queue>>> muxers;
 
-            muxers.push_back({});
+            muxers.emplace_back();
             for (const auto &muxer_name : muxer_names[""])
                 muxers.back().emplace_back(
                     new message_queue(open_only, muxer_name.c_str()));
