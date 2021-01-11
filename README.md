@@ -512,7 +512,7 @@ respond for the same events, these don't get duplicated:
 Depending on the system, device links (`by-id`, `by-path`, etc) may not exist
 at all, or not be readily available when the machine boots, which may make it
 unreliable to refer to them on _standalone jobs_ which execute when `udevmon`
-starts on boot. It's safe to refer to them on device jobs, as they only start
+starts on boot. It's safe to refer to them on device jobs, as these only start
 when the link actually becomes present.
 
 Hence, on standalone jobs it's generally better practice to refer to previously
