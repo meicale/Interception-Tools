@@ -88,10 +88,12 @@ options:
 
 - [xswitch][]: _redirect stdin to a muxer if window matches_
 
-## Community Plugins
+## Some Community Plugins
 
+- [ralt2hyper][]: _Remap Right Alt (commonly AltGr) to Hyper (i.e. Control, Alt and Super)_
 - [chorded_keymap][]
 - [interception-vimproved][]
+- [interception-k2k][]
 
 ## Execution
 
@@ -539,8 +541,10 @@ may not work on boot. You may verify that by rebooting and checking whether
 [hideaway]: https://gitlab.com/interception/linux/plugins/hideaway
 [dual-function-keys]: https://gitlab.com/interception/linux/plugins/dual-function-keys
 [xswitch]: https://gitlab.com/interception/linux/plugins/xswitch
+[ralt2hyper]: https://gitlab.com/oarmstrong/ralt2hyper
 [chorded_keymap]: https://gitlab.com/wsha/chorded_keymap
 [interception-vimproved]: https://github.com/maricn/interception-vimproved
+[interception-k2k]: https://github.com/zsugabubus/interception-k2k
 [sk61]: https://epomaker.com/products/epomaker-sk61
 [caps2esc-issue-15-note]: https://gitlab.com/interception/linux/plugins/caps2esc/-/issues/15#note_476593423
 [ecmascript]: http://en.cppreference.com/w/cpp/regex/ecmascript
