@@ -78,10 +78,15 @@ options:
 
 ## Official Plugins
 
-- [caps2esc][]
-- [space2meta][]
-- [hideaway][]
-- [dual-function-keys][]
+- [caps2esc][]: _transforming the most useless key ever in the most useful one_
+- [space2meta][]: _turn your space key into the meta key when chorded to
+  another key (on key release only)_
+- [hideaway][]: _move the mouse pointer out of sight after a couple of seconds_
+- [dual-function-keys][]: _tap for one key, hold for another_
+
+## Additional Tools
+
+- [xswitch][]: _redirect stdin to a muxer if window matches_
 
 ## Community Plugins
 
@@ -533,6 +538,7 @@ may not work on boot. You may verify that by rebooting and checking whether
 [space2meta]: https://gitlab.com/interception/linux/plugins/space2meta
 [hideaway]: https://gitlab.com/interception/linux/plugins/hideaway
 [dual-function-keys]: https://gitlab.com/interception/linux/plugins/dual-function-keys
+[xswitch]: https://gitlab.com/interception/linux/plugins/xswitch
 [chorded_keymap]: https://gitlab.com/wsha/chorded_keymap
 [interception-vimproved]: https://github.com/maricn/interception-vimproved
 [sk61]: https://epomaker.com/products/epomaker-sk61
