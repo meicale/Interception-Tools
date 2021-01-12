@@ -87,6 +87,7 @@ options:
 ## Additional Tools
 
 - [xswitch][]: _redirect stdin to a muxer if window matches_
+- [uswitch][]: _redirect stdin to a muxer if logged user matches_
 
 ## Some Community Plugins
 
@@ -541,6 +542,7 @@ may not work on boot. You may verify that by rebooting and checking whether
 [hideaway]: https://gitlab.com/interception/linux/plugins/hideaway
 [dual-function-keys]: https://gitlab.com/interception/linux/plugins/dual-function-keys
 [xswitch]: https://gitlab.com/interception/linux/plugins/xswitch
+[uswitch]: https://gitlab.com/interception/linux/plugins/uswitch
 [ralt2hyper]: https://gitlab.com/oarmstrong/ralt2hyper
 [chorded_keymap]: https://gitlab.com/wsha/chorded_keymap
 [interception-vimproved]: https://github.com/maricn/interception-vimproved
