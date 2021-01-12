@@ -76,6 +76,11 @@ options:
 - [CMake][cmake]
 - [Boost.Interprocess][interprocess]
 
+## Additional Tools
+
+- [uswitch][]: _redirect stdin to a muxer if logged user matches_
+- [xswitch][]: _redirect stdin to a muxer if window matches_
+
 ## Official Plugins
 
 - [caps2esc][]: _transforming the most useless key ever in the most useful one_
@@ -83,11 +88,6 @@ options:
   another key (on key release only)_
 - [hideaway][]: _move the mouse pointer out of sight after a couple of seconds_
 - [dual-function-keys][]: _tap for one key, hold for another_
-
-## Additional Tools
-
-- [xswitch][]: _redirect stdin to a muxer if window matches_
-- [uswitch][]: _redirect stdin to a muxer if logged user matches_
 
 ## Some Community Plugins
 
@@ -537,12 +537,12 @@ may not work on boot. You may verify that by rebooting and checking whether
 [yaml-cpp]: https://github.com/jbeder/yaml-cpp
 [glibc]: https://www.gnu.org/software/libc
 [interprocess]: https://www.boost.org/doc/libs/release/libs/interprocess
+[uswitch]: https://gitlab.com/interception/linux/plugins/uswitch
+[xswitch]: https://gitlab.com/interception/linux/plugins/xswitch
 [caps2esc]: https://gitlab.com/interception/linux/plugins/caps2esc
 [space2meta]: https://gitlab.com/interception/linux/plugins/space2meta
 [hideaway]: https://gitlab.com/interception/linux/plugins/hideaway
 [dual-function-keys]: https://gitlab.com/interception/linux/plugins/dual-function-keys
-[xswitch]: https://gitlab.com/interception/linux/plugins/xswitch
-[uswitch]: https://gitlab.com/interception/linux/plugins/uswitch
 [ralt2hyper]: https://gitlab.com/oarmstrong/ralt2hyper
 [chorded_keymap]: https://gitlab.com/wsha/chorded_keymap
 [interception-vimproved]: https://github.com/maricn/interception-vimproved
