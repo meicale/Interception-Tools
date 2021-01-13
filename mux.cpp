@@ -207,7 +207,7 @@ int main(int argc, char *argv[]) try {
             std::setbuf(stdin, nullptr);
 
             input_event input;
-            for (;;) {
+            for (;;)
                 if (std::fread(&input, sizeof input, 1, stdin) == 1) {
                     size_t current = current_muxer;
                     for (auto &muxer : muxers[current])
@@ -217,7 +217,6 @@ int main(int argc, char *argv[]) try {
                         "error reading input event from stdin");
                 else if (std::feof(stdin))
                     break;
-            }
         } break;
     }
 } catch (const std::exception &e) {
