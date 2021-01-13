@@ -408,7 +408,10 @@ goes either to `KM` or `XM`.
 
 For `KM` then we apply `caps2esc`, but for `XM` we apply `caps2esc -m 2`. And
 regardless the route that input goes through, we send it to the final `H`
-endpoint, which gets consumed by a hybrid virtual device.
+endpoint, which gets consumed by a hybrid virtual device (e.g. `sudo uinput -p
+-d /dev/input/by-id/usb-Logitech_USB_Receiver-if02-event-mouse -d
+/dev/input/by-id/usb-SEMITEK_USB-HID_Gaming_Keyboard_SN0000000001-event-kbd |
+sudo tee /etc/interception/hybrid.yaml`).
 
 As a final note on the `mux` tool in switch mode, `mux -i e | mux -o o -i i`
 would redirect `e` to `o` by default, but once there's activity in `i`, `e` is
