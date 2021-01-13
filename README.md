@@ -489,7 +489,8 @@ non-working hybrid that can only respond for the touchpad's events (it seems
 that I stored the configurations in different files, and checked they didn't
 respond for any identical events. Then I used these two as virtual output for
 the same muxed stream of events, but given that the virtual devices don't
-respond for the same events, these don't get duplicated:
+respond for the same events, these don't get duplicated but instead get
+effectively split from a single stream into their relevant virtual devices:
 
 ```yaml
 - CMD: mux -c caps2esc -c keyboard -c mouse
