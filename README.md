@@ -131,14 +131,6 @@ Or if building from sources, these are the dependencies:
 $ dnf install cmake libevdev-devel systemd-devel yaml-cpp-devel boost-devel
 ```
 
-### Ubuntu
-
-I don't use Ubuntu and recommend Archlinux instead, as it provides the AUR, so I
-don't maintain PPAs. For more information on Ubuntu/Debian installation check
-this:
-
-- <https://askubuntu.com/questions/979359/how-do-i-install-caps2esc>
-
 ## Building
 
 ```
