@@ -399,7 +399,10 @@ struct jobs_manager {
                             "configuration must contain a job node's sequence "
                             "document");
                     for (const auto &job_node : config[0])
-                        jobs.emplace_back(job_node);
+                        if (job_node["JOB"] && job_node.size() == 2)
+                            jobs.emplace_back(job_node);
+                        else
+                            cmds.emplace_back(job_node);
                     break;
                 case 2:
                     if (config[0].IsSequence() == config[1].IsSequence())
