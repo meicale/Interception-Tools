@@ -118,6 +118,13 @@ It's available from [community](https://archlinux.org/packages/community/x86_64/
 $ pacman -S interception-tools
 ```
 
+<sub>**Note**: this package doesn't provide `udevmon.service` unit file as
+released in this repository, which may prevent plugins with capabilities beyond
+key mapping (e.g. [xswitch][]) from working. See [issue #32][issue-32] for
+discussion on the topic. Simply replace `udevmon.service` if needed.</sub>
+
+[issue-32]: https://gitlab.com/interception/linux/tools/-/issues/32#note_486367052
+
 ### Fedora
 
 ```
