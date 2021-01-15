@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) try {
                 if (last_opt && last_opt != 'c')
                     break;
 
-                muxer_size = std::atoi(optarg);
+                muxer_size = std::stoul(optarg);
                 last_opt   = 's';
                 continue;
             case 'c':
