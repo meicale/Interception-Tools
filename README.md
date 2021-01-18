@@ -391,7 +391,12 @@ This is better practice, as writing doesn't implicate in any problem in case
 the device disconnects and its job gets dropped. Dropping a pipeline in reading
 state ends up leading to muxer corruption, so it's better that muxer reading
 happens in standalone jobs that only finish when the `udevmon` service is
-stopped._</sub>
+stopped.
+
+When multiple devices match a device job description, a job instance per device
+will run, so, consuming a muxer in device jobs would also create a race
+condition of multiple job instances competing for the same muxer
+events._</sub>
 
 On `mux -i M | mux -o KM -i K -o KM -i X -o XM` we get to the core of the
 design. Here `M` is consumed and gets redirected either to `KM`, if there's
