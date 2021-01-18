@@ -385,18 +385,17 @@ checking there's activity in a particular group (`mux -o K …` and `mux -o X
 
 The mouse events are consumed and sent to the `M` muxer for further processing.
 
-<sub>_**Notice** that reading of muxers with the `mux` tool (`mux -i`) only
-happens in standalone jobs. Device jobs only get to produce output (`mux -o`).
-This is better practice, as writing doesn't implicate in any problem in case
-the device disconnects and its job gets dropped. Dropping a pipeline in reading
-state ends up leading to muxer corruption, so it's better that muxer reading
-happens in standalone jobs that only finish when the `udevmon` service is
-stopped.
-
-When multiple devices match a device job description, a job instance per device
-will run, so, consuming a muxer in device jobs would also create a race
-condition of multiple job instances competing for the same muxer
-events._</sub>
+<sub>_**Notice** that when multiple devices match a given device job
+description, a job instance per device will run, so, consuming a muxer (`mux …
+-i …`) from device jobs would create a race condition of multiple job instances
+competing for the same events of a given muxer. That's why, here, device jobs
+are only writing to muxers (`mux -o`), which is fine for muxing the events of
+all matching devices into a single stream, but muxer reading only happens in
+standalone jobs, for which there's only one instance running for its
+consumption. Also, muxer writing doesn't implicate in any problem in case the
+device disconnects and its job gets dropped. Dropping a pipeline in reading
+state ends up leading to muxer corruption, while standalone jobs only finish
+when the `udevmon` service is stopped._</sub>
 
 On `mux -i M | mux -o KM -i K -o KM -i X -o XM` we get to the core of the
 design. Here `M` is consumed and gets redirected either to `KM`, if there's
