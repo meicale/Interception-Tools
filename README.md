@@ -351,22 +351,20 @@ Lets imagine the following setup:
 Voilà:
 
 ```yaml
-- CMD: mux -c K -c k -c X -c x -c M -c KM -c XM -c H
+- CMD: mux -c K -c X -c M -c KM -c XM -c H
 - JOB:
-    - mux -i K | mux -o k -o KM
-    - mux -i X | mux -o x -o XM
-    - mux -i M | mux -o KM -i k -o KM -i x -o XM
+    - mux -i M | mux -o KM -i K -o KM -i X -o XM
     - mux -i KM | caps2esc | mux -o H
     - mux -i XM | caps2esc -m 2 | mux -o H
     - mux -i H | uinput -c /etc/interception/hybrid.yaml
-- JOB: intercept -g $DEVNODE | mux -o X
+- JOB: intercept -g $DEVNODE | mux -o X -o XM
   DEVICE:
     LINK: /dev/input/by-id/usb-SEMITEK_USB-HID_Gaming_Keyboard_SN0000000001-event-kbd
 - JOB: intercept -g $DEVNODE | mux -o M
   DEVICE:
     EVENTS:
       EV_KEY: [BTN_LEFT, BTN_TOUCH]
-- JOB: intercept -g $DEVNODE | mux -o K
+- JOB: intercept -g $DEVNODE | mux -o K -o KM
   DEVICE:
     EVENTS:
       EV_KEY: [[KEY_CAPSLOCK, KEY_ESC]]
@@ -377,22 +375,29 @@ Voilà:
 Don't be afraid as it's pretty simple to break it down.
 
 First, as can be seen, at the bottom we have device detection for three device
-groups (as modeled previously) and each group redirect their input to
-appropriately named muxers, `K`, `M` and `X`.
+groups (as modeled previously).
 
-The `mux -i K | mux -o k -o KM` (sub) job consumes the input coming from group
-`K` and duplicates into `k` and `KM`. `KM`, as explained before, is the point
-where input coming from either `K` or `M` will go through. The lowercase `k`
-one here is a special purpose endpoint to be consumed solely for checking if
-there's input activity in the `K` group.
+The keyboard events are consumed and duplicated out, this happens so that
+consumption of these events can happen in parallel both for purposes of
+checking there's activity in a particular group (`mux -o K …` and `mux -o X
+…`), as for the final consumption of keyboard and mouse events muxed together
+(`mux … -o KM` and `mux … -o XM`).
 
-The same explanation applies for `mux -i X | mux -o x -o XM`.
+The mouse events are consumed and sent to the `M` muxer for further processing.
 
-On `mux -i M | mux -o KM -i k -o KM -i x -o XM` we get to the core of the
+<sub>_**Notice** that reading of muxers with the `mux` tool (`mux -i`) only
+happens in standalone jobs. Device jobs only get to produce output (`mux -o`).
+This is better practice, as writing doesn't implicate in any problem in case
+the device disconnects and its job gets dropped. Dropping a pipeline in reading
+state ends up leading to muxer corruption, so it's better that muxer reading
+happens in standalone jobs that only finish when the `udevmon` service is
+stopped._</sub>
+
+On `mux -i M | mux -o KM -i K -o KM -i X -o XM` we get to the core of the
 design. Here `M` is consumed and gets redirected to either `KM`, if there's
-activity in `k` (`-i k -o KM`), or `XM`, if there's activity in `x` (`-i x -o
+activity in `K` (`-i K -o KM`), or `XM`, if there's activity in `X` (`-i X -o
 XM`). The first `-o KM` makes `KM` the default route for input coming from `M`
-(in case no activity ever happens in `k` or `x`).
+(in case no activity ever happens in `K` or `X`).
 
 In the end we only have `KM` and `XM` to consume input from, as we have that
 input from `K` goes to `KM`, input from `X` goes to `XM`, and input from `M`
