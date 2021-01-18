@@ -390,8 +390,8 @@ description, a job instance per device will run, so, consuming a muxer (`mux …
 -i …`) from device jobs would create a race condition of multiple job instances
 competing for the same events of a given muxer. That's why, here, device jobs
 solely write to muxers (`mux -o`), which is fine for muxing the events of all
-matching devices into a single stream, but muxer reading only happens in
-standalone jobs, for which there's only one instance running for its
+matching devices into a single stream, but the reading of a muxer only happens
+in standalone jobs, for which there's only one instance running for its
 consumption. Also, muxer writing doesn't implicate in any problem in case the
 device disconnects and its job gets dropped. Dropping a pipeline in reading
 state ends up leading to muxer corruption, while standalone jobs only finish
