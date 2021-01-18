@@ -400,8 +400,8 @@ XM`). The first `-o KM` makes `KM` the default route for input coming from `M`
 (in case no activity ever happens in `K` or `X`).
 
 In the end we only have `KM` and `XM` to consume input from, as we have that
-input from `K` goes to `KM`, input from `X` goes to `XM`, and input from `M`
-goes either to `KM` or `XM`.
+input from group K goes to `KM`, input from group X goes to `XM`, and input
+from M goes either to `KM` or `XM`.
 
 For `KM` then we apply `caps2esc`, but for `XM` we apply `caps2esc -m 2`. And
 regardless the route that input goes through, we send it to the final `H`
