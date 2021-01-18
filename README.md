@@ -394,7 +394,7 @@ happens in standalone jobs that only finish when the `udevmon` service is
 stopped._</sub>
 
 On `mux -i M | mux -o KM -i K -o KM -i X -o XM` we get to the core of the
-design. Here `M` is consumed and gets redirected to either `KM`, if there's
+design. Here `M` is consumed and gets redirected either to `KM`, if there's
 activity in `K` (`-i K -o KM`), or `XM`, if there's activity in `X` (`-i X -o
 XM`). The first `-o KM` makes `KM` the default route for input coming from `M`
 (in case no activity ever happens in `K` or `X`).
