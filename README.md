@@ -122,6 +122,7 @@ $ pacman -S interception-tools
 
 ```
 sudo add-apt-repository ppa:deafmute/interception
+sudo apt install interception-tools
 ```
 
 <sub>For debian and other derivatives you can download directly at https://launchpad.net/~deafmute/+archive/ubuntu/interception/+packages.</sub>
