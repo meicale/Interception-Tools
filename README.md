@@ -118,7 +118,24 @@ It's available from [community](https://archlinux.org/packages/community/x86_64/
 $ pacman -S interception-tools
 ```
 
-### Fedora
+### Ubuntu ([independent package][ubuntu])
+
+```
+sudo add-apt-repository ppa:deafmute/interception
+```
+
+<sub>For debian and other derivatives you can download directly at https://launchpad.net/~deafmute/+archive/ubuntu/interception/+packages.</sub>
+
+
+Or if building from sources, these are the dependencies:
+
+```
+$ sudo apt install cmake libevdev-dev libudev-dev libyaml-cpp-dev libboost-dev
+```
+
+[ubuntu]: https://gitlab.com/interception/linux/tools/-/issues/38
+
+### Fedora ([independent package][fedora])
 
 ```
 $ sudo dnf copr enable fszymanski/interception-tools
@@ -126,6 +143,8 @@ $ sudo dnf install interception-tools
 ```
 
 Or if building from sources, these are the dependencies:
+
+[fedora]: https://gitlab.com/interception/linux/tools/-/merge_requests/11
 
 ```
 $ dnf install cmake libevdev-devel systemd-devel yaml-cpp-devel boost-devel
