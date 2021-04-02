@@ -144,11 +144,11 @@ $ sudo dnf install interception-tools
 
 Or if building from sources, these are the dependencies:
 
-[fedora]: https://gitlab.com/interception/linux/tools/-/merge_requests/11
-
 ```
 $ dnf install cmake libevdev-devel systemd-devel yaml-cpp-devel boost-devel
 ```
+
+[fedora]: https://gitlab.com/interception/linux/tools/-/merge_requests/11
 
 ## Building
 
