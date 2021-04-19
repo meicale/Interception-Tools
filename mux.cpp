@@ -155,10 +155,12 @@ int main(int argc, char *argv[]) try {
             std::setbuf(stdin, nullptr);
             input_event input;
             for (;;)
-                if (std::fread(&input, sizeof input, 1, stdin) == 1)
+                if (std::fread(&input, sizeof input, 1, stdin) == 1) {
                     for (auto &muxer : muxers)
-                        muxer->try_send(&input, sizeof input, 0);
-                else if (std::ferror(stdin))
+                        if (!muxer->try_send(&input, sizeof input, 0))
+                            throw std::runtime_error(
+                                "output message queue is full");
+                } else if (std::ferror(stdin))
                     throw std::runtime_error(
                         "error reading input event from stdin");
                 else if (std::feof(stdin))
@@ -211,7 +213,9 @@ int main(int argc, char *argv[]) try {
                 if (std::fread(&input, sizeof input, 1, stdin) == 1) {
                     size_t current = current_muxer;
                     for (auto &muxer : muxers[current])
-                        muxer->try_send(&input, sizeof input, 0);
+                        if (!muxer->try_send(&input, sizeof input, 0))
+                            throw std::runtime_error(
+                                "output message queue is full");
                 } else if (std::ferror(stdin))
                     throw std::runtime_error(
                         "error reading input event from stdin");
