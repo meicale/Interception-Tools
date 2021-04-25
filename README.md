@@ -106,7 +106,8 @@ responsible):
 $ sudo nice -n -20 udevmon -c udevmon.yaml >udevmon.log 2>udevmon.err &
 ```
 
-The usual route, though, is simply to use the provided systemd unit.
+The usual route, though, is simply to use the provided systemd unit or OpenRC
+init script.
 
 ## Installation
 
