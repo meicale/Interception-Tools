@@ -1,0 +1,14 @@
+#!/sbin/openrc-run
+
+depend() {
+	want udev-settle
+	after udev-settle
+}
+
+start() {
+	ebegin "Starting udevmon"
+	start-stop-daemon --start --exec "/usr/bin/udevmon" \
+		-N -20 --background --pidfile /var/run/udevmon.pid --make-pidfile \
+		-- -c /etc/interception/udevmon.yaml
+}
+
