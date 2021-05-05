@@ -215,7 +215,7 @@ int main(int argc, char *argv[]) try {
                     for (auto &muxer : muxers[current])
                         if (!muxer->try_send(&input, sizeof input, 0))
                             throw std::runtime_error(
-                                "output message queue is full");
+                                "outgoing muxer is full, exiting");
                 } else if (std::ferror(stdin))
                     throw std::runtime_error(
                         "error reading input event from stdin");
