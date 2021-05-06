@@ -29,6 +29,12 @@ extern "C" {
 
 using yaml = std::vector<YAML::Node>;
 
+volatile sig_atomic_t g_quit = false;
+
+void set_quit_handler(int /*signal*/) {
+    g_quit = true;
+}
+
 void print_usage(std::FILE *stream, const char *program) {
     // clang-format off
     std::fprintf(stream,
@@ -621,6 +627,14 @@ int main(int argc, char *argv[]) try {
     if (sigaction(SIGCHLD, &sa, nullptr) == -1)
         return perror("couldn't summon zombie killer"), EXIT_FAILURE;
 
+    sa.sa_flags = 0;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_handler = &set_quit_handler;
+    if (sigaction(SIGINT, &sa, nullptr) == -1)
+        return perror("couldn't register SIGINT signal handler"), EXIT_FAILURE;
+    if (sigaction(SIGTERM, &sa, nullptr) == -1)
+        return perror("couldn't register SIGTERM signal handler"), EXIT_FAILURE;
+
     jobs.launch();
 
     udev *udev = udev_new();
@@ -666,7 +680,7 @@ int main(int argc, char *argv[]) try {
                                                         nullptr);
         udev_monitor_enable_receiving(monitor);
         int fd = udev_monitor_get_fd(monitor);
-        for (;;) {
+        while (!g_quit) {
             fd_set fds;
             FD_ZERO(&fds);
             FD_SET(fd, &fds);
