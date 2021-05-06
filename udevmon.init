@@ -5,10 +5,8 @@ depend() {
 	after udev-settle
 }
 
-start() {
-	ebegin "Starting udevmon"
-	start-stop-daemon --start --exec "/usr/bin/udevmon" \
-		-N -20 --background --pidfile /var/run/udevmon.pid --make-pidfile \
-		-- -c /etc/interception/udevmon.yaml
-}
-
+command=/usr/bin/udevmon
+command_args='-c /etc/interception/udevmon.yaml'
+start_stop_daemon_args='-N -20'
+pidfile=/var/run/udevmon.pid
+command_background=true
