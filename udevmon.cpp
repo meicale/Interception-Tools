@@ -29,12 +29,6 @@ extern "C" {
 
 using yaml = std::vector<YAML::Node>;
 
-volatile sig_atomic_t g_quit = false;
-
-void set_quit_handler(int /*signal*/) {
-    g_quit = true;
-}
-
 void print_usage(std::FILE *stream, const char *program) {
     // clang-format off
     std::fprintf(stream,
@@ -590,6 +584,10 @@ void kill_zombies(int /*signum*/) {
         ;
 }
 
+volatile sig_atomic_t quit = false;
+
+void set_quit_handler(int /*signal*/) { quit = true; }
+
 int main(int argc, char *argv[]) try {
     using std::perror;
 
@@ -622,6 +620,7 @@ int main(int argc, char *argv[]) try {
     jobs_manager jobs(configs);
 
     struct sigaction sa {};
+
     sa.sa_flags   = SA_NOCLDSTOP;
     sa.sa_handler = &kill_zombies;
     if (sigaction(SIGCHLD, &sa, nullptr) == -1)
@@ -680,7 +679,7 @@ int main(int argc, char *argv[]) try {
                                                         nullptr);
         udev_monitor_enable_receiving(monitor);
         int fd = udev_monitor_get_fd(monitor);
-        while (!g_quit) {
+        while (!quit) {
             fd_set fds;
             FD_ZERO(&fds);
             FD_SET(fd, &fds);
