@@ -155,7 +155,7 @@ $ dnf install cmake libevdev-devel systemd-devel yaml-cpp-devel boost-devel
 ## Building
 
 ```
-$ git clone git@gitlab.com:interception/linux/tools.git interception-tools
+$ git clone https://gitlab.com/interception/linux/tools.git interception-tools
 $ cd interception-tools
 $ cmake -B build -DCMAKE_BUILD_TYPE=Release
 $ cmake --build build
