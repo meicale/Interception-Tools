@@ -79,10 +79,10 @@ struct cmd {
             }
     }
 
-    std::vector<__pid_t> launch() const {
-        std::vector<__pid_t> pids;
+    std::vector<pid_t> launch() const {
+        std::vector<pid_t> pids;
         for (size_t i = 0; i < cmds.size(); ++i) {
-            __pid_t pid = fork();
+            pid_t pid = fork();
             switch (pid) {
                 case -1: {
                     for (auto pid : pids)
@@ -327,10 +327,10 @@ struct job {
             });
     }
 
-    std::vector<__pid_t> launch_for(const std::string &devnode) const {
-        std::vector<__pid_t> pids;
+    std::vector<pid_t> launch_for(const std::string &devnode) const {
+        std::vector<pid_t> pids;
         for (size_t i = 0; i < cmds.size(); ++i) {
-            __pid_t pid = fork();
+            pid_t pid = fork();
             switch (pid) {
                 case -1:
                     std::fprintf(stderr,
@@ -559,8 +559,8 @@ struct jobs_manager {
 
     std::vector<cmd> cmds;
     std::vector<job> jobs;
-    std::vector<__pid_t> running_cmds;
-    std::map<std::string, std::vector<__pid_t>> running_jobs;
+    std::vector<pid_t> running_cmds;
+    std::map<std::string, std::vector<pid_t>> running_jobs;
 };
 
 std::vector<yaml> scan_config(const std::string &directory) {
