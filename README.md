@@ -8,7 +8,7 @@ events of `evdev` devices:
 
 ### udevmon
 
-```
+```text
 udevmon - monitor input devices for launching tasks
 
 usage: udevmon [-h | -c configuration.yaml]
@@ -22,7 +22,7 @@ options:
 
 ### intercept
 
-```
+```text
 intercept - redirect device input events to stdout
 
 usage: intercept [-h | [-g] devnode]
@@ -35,7 +35,7 @@ options:
 
 ### uinput
 
-```
+```text
 uinput - redirect device input events from stdin to virtual device
 
 usage: uinput [-h | [-p] [-c device.yaml] [-d devnode]]
@@ -50,7 +50,8 @@ options:
 ```
 
 ### mux
-```
+
+```text
 mux - mux streams of input events
 
 usage: mux [-h | [-s size] -c name | [-i name] [-o name]]
@@ -102,7 +103,7 @@ The following daemonized sample execution increases `udevmon` priority (since
 it'll be responsible for a vital input device, just to make sure it stays
 responsible):
 
-```
+```text
 $ sudo nice -n -20 udevmon -c udevmon.yaml >udevmon.log 2>udevmon.err &
 ```
 
@@ -115,23 +116,27 @@ init script.
 
 It's available from [community](https://archlinux.org/packages/community/x86_64/interception-tools/):
 
-```
+```text
 $ pacman -S interception-tools
+```
+### Void Linux
+
+```text
+$ xbps-install -S interception-tools
 ```
 
 ### Ubuntu ([independent package][ubuntu])
 
-```
+```text
 sudo add-apt-repository ppa:deafmute/interception
 sudo apt install interception-tools
 ```
 
 <sub>For debian and other derivatives you can download directly at https://launchpad.net/~deafmute/+archive/ubuntu/interception/+packages.</sub>
 
-
 Or if building from sources, these are the dependencies:
 
-```
+```text
 $ sudo apt install cmake libevdev-dev libudev-dev libyaml-cpp-dev libboost-dev
 ```
 
@@ -139,14 +144,14 @@ $ sudo apt install cmake libevdev-dev libudev-dev libyaml-cpp-dev libboost-dev
 
 ### Fedora ([independent package][fedora])
 
-```
+```text
 $ sudo dnf copr enable fszymanski/interception-tools
 $ sudo dnf install interception-tools
 ```
 
 Or if building from sources, these are the dependencies:
 
-```
+```text
 $ dnf install cmake libevdev-devel systemd-devel yaml-cpp-devel boost-devel
 ```
 
@@ -154,7 +159,7 @@ $ dnf install cmake libevdev-devel systemd-devel yaml-cpp-devel boost-devel
 
 ## Building
 
-```
+```text
 $ git clone https://gitlab.com/interception/linux/tools.git interception-tools
 $ cd interception-tools
 $ cmake -B build -DCMAKE_BUILD_TYPE=Release
@@ -246,7 +251,7 @@ prints `my-kbd` characteristics in YAML, which itself can be fed back to
 `uinput` as `uinput -c my-kbd.yaml`. It can also merge device and YAML
 characteristics, for example,
 
-```
+```text
 uinput -p -d /dev/input/by-id/my-kbd -d /dev/input/by-id/my-mouse -c my-extra.yaml
 ```
 
