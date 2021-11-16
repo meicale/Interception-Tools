@@ -132,7 +132,8 @@ sudo add-apt-repository ppa:deafmute/interception
 sudo apt install interception-tools
 ```
 
-<sub>For debian and other derivatives you can download directly at https://launchpad.net/~deafmute/+archive/ubuntu/interception/+packages.</sub>
+<sub>For Debian and other derivatives you can download directly at
+<https://launchpad.net/~deafmute/+archive/ubuntu/interception/+packages>.</sub>
 
 Or if building from sources, these are the dependencies:
 
@@ -364,9 +365,9 @@ Besides combining pipelines, the `mux` tool can duplicate them (multiple `-o`s)
 and even act as a _switch_, based on activity in other pipelines (`-i` and `-o`
 intermixed). Which brings us to our lasting, _slightly complex_, use case:
 
-Lets imagine the following setup:
+Let's imagine the following setup:
 
-- You want to grab keyboards (here after referred as `K`) and mice (`M`)  and
+- You want to grab keyboards (here after referred as `K`) and mice (`M`) and
   combine input coming from these two groups into `KM`, to apply multi device
   chording
 - You have a generic filter (`caps2esc`) you want to apply to combined
