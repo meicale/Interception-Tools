@@ -591,6 +591,7 @@ void set_quit_handler(int /*signal*/) { quit = true; }
 int main(int argc, char *argv[]) try {
     using std::perror;
 
+    std::regex default_config("/etc/interception/udevmon.ya?ml");
     std::vector<yaml> configs = scan_config("/etc/interception/udevmon.d");
 
     if (configs.size() > 0)
@@ -606,6 +607,9 @@ int main(int argc, char *argv[]) try {
                 try {
                     configs.push_back(YAML::LoadAllFromFile(optarg));
                 } catch (const YAML::BadFile &e) {
+                    if (std::regex_match(optarg, default_config) &&
+                        configs.size() > 0)
+                        continue;
                     printf("ignoring %s, reason: %s\n", optarg, e.msg.c_str());
                 }
                 continue;
