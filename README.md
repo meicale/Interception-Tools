@@ -6,6 +6,7 @@ A minimal composable infrastructure on top of [`libudev`][libudev] and
 The _Interception Tools_ is a small set of utilities for operating on input
 events of `evdev` devices:
 
+## ORIGINAL repo is [here](https://gitlab.com/interception/linux/tools)
 ### udevmon
 
 ```text
